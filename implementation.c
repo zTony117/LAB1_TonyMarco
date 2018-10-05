@@ -119,9 +119,9 @@ void print_team_info(){
 
     // Please fill in your partner's information
     // If yon't have partner, do not modify this
-    char student2_first_name[] = "joe";
-    char student2_last_name[] = "doe";
-    char student2_student_number[] = "0000000001";
+    char student2_first_name[] = "Yue Hin";
+    char student2_last_name[] = "Lau";
+    char student2_student_number[] = "1001408069";
 
     // Printing out team information
     printf("*******************************************************************************************************\n");
