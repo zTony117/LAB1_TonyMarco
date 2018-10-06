@@ -104,13 +104,43 @@ unsigned char *processMirrorY(unsigned char *buffer_frame, unsigned width, unsig
     return processMirrorYReference(buffer_frame, width, height, _unused);
 }
 
+unsigned char *doTranslations(unsigned char *frame_buffer, unsigned width, unsigned height, int vertical_movement, int horizontal_movement) {
+    if (vertical_movement > 0) {
+        frame_buffer = processMoveUp(frame_buffer, width, height, vertical_movement);
+        vertical_movement = 0;
+                //printBMP(width, height, frame_buffer);
+    }
+
+    else if (vertical_movement < 0) {
+        frame_buffer = processMoveDown(frame_buffer, width, height, -vertical_movement);
+        vertical_movement = 0;
+                //printBMP(width, height, frame_buffer);
+    }
+
+    if (horizontal_movement > 0) {
+        frame_buffer = processMoveRight(frame_buffer, width, height, horizontal_movement);
+        horizontal_movement = 0;
+                //printBMP(width, height, frame_buffer);
+    }
+
+    else if (horizontal_movement < 0) {
+        frame_buffer = processMoveLeft(frame_buffer, width, height, -horizontal_movement);
+        horizontal_movement = 0;
+                //printBMP(width, height, frame_buffer);
+    }
+
+    return frame_buffer;
+}
+
+
+
 /***********************************************************************************************************************
  * WARNING: Do not modify the implementation_driver and team info prototype (name, parameter, return value) !!!
  *          Do not forget to modify the team_name and team member information !!!
  **********************************************************************************************************************/
 void print_team_info(){
     // Please modify this field with something interesting
-    char team_name[] = "Crippling_Depression";
+    char team_name[] = "OH NO";
 
     // Please fill in your information
     char student1_first_name[] = "Zhaotong";
@@ -151,37 +181,197 @@ void print_team_info(){
 void implementation_driver(struct kv *sensor_values, int sensor_values_count, unsigned char *frame_buffer,
                            unsigned int width, unsigned int height, bool grading_mode) {
     int processed_frames = 0;
+
+    //added variables to store stuff
+    int horizontal_movement = 0;
+	int vertical_movement = 0;
+    int rotation_clockwise = 0;
+    int mirrorX = 0;
+    int mirrorY = 0;
+
+    int mod25_frames = 0;
+
+    //Accumulate sensor values if they are translations
+    //If rotation or mirror, accumulate if next instruction is the same, otherwise immediately process rotation or mirror
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
+        processed_frames += 1;
+        mod25_frames = processed_frames % 25;
 //        printf("Processing sensor value #%d: %s, %d\n", sensorValueIdx, sensor_values[sensorValueIdx].key,
 //               sensor_values[sensorValueIdx].value);
         if (!strcmp(sensor_values[sensorValueIdx].key, "W")) {
-            frame_buffer = processMoveUp(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            vertical_movement += sensor_values[sensorValueIdx].value;
 //            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "A")) {
-            frame_buffer = processMoveLeft(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        } 
+
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "A")) {
+            horizontal_movement -= sensor_values[sensorValueIdx].value;
 //            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "S")) {
-            frame_buffer = processMoveDown(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        } 
+
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "S")) {
+             vertical_movement -= sensor_values[sensorValueIdx].value;
 //            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "D")) {
-            frame_buffer = processMoveRight(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        } 
+
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "D")) {
+            horizontal_movement += sensor_values[sensorValueIdx].value;
 //            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "CW")) {
-            frame_buffer = processRotateCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        } 
+        
+        //if clockwise rotation, accumulate if next instruction is rotation
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "CW")) {
+            rotation_clockwise += sensor_values[sensorValueIdx].value;
+
+            //if need to verify frames, process previous translations, and do the rotation
+            if (mod25_frames == 0 && rotation_clockwise != 0) {
+                int trueRotation = rotation_clockwise % 4;
+
+                if (trueRotation != 0) {
+
+                    if (vertical_movement != 0 || horizontal_movement != 0) {
+                        doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                        vertical_movement = 0;
+                        horizontal_movement = 0;
+                    }
+
+                    if (rotation_clockwise > 0)
+                        frame_buffer = processRotateCW(frame_buffer, width, height, trueRotation);
+                    else 
+                        frame_buffer = processRotateCCW(frame_buffer, width, height, -trueRotation);
+                    rotation_clockwise = 0;
+                }
+            }
+
+            else {
+                //POTENTIAL FOR OPTIMIZATION HERE. ALREADY CHECKING NEXT VALUE. MIGHT AS WELL SKIP IT. JUST ADD +2 TO COUNTER INSTEAD OF +1 IF THE SAME AND ACCUMULATE NEXT VALUE
+                if (!strcmp(sensor_values[sensorValueIdx + 1].key, "CW") || !strcmp(sensor_values[sensorValueIdx + 1].key, "CCW")) {
+                    //do nothing
+                }
+                else if (rotation_clockwise != 0) {
+                    int trueRotation = rotation_clockwise % 4;
+
+                    if (trueRotation != 0) {
+
+                        if (vertical_movement != 0 || horizontal_movement != 0) {
+                            doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                            vertical_movement = 0;
+                            horizontal_movement = 0;
+                        }
+
+                        if (rotation_clockwise > 0)
+                            frame_buffer = processRotateCW(frame_buffer, width, height, trueRotation);
+                        else 
+                            frame_buffer = processRotateCCW(frame_buffer, width, height, -trueRotation);
+                        rotation_clockwise = 0;
+                    }
+                }
+            }
+        }
 //            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "CCW")) {
-            frame_buffer = processRotateCCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "CCW")) {
+            rotation_clockwise = rotation_clockwise - sensor_values[sensorValueIdx].value;
+
+            //if need to verify frames, process previous translations, and do the rotation
+            if (mod25_frames == 0 && rotation_clockwise != 0) {
+                int trueRotation = rotation_clockwise % 4;
+
+                if (trueRotation != 0) {
+
+                    if (vertical_movement != 0 || horizontal_movement != 0) {
+                        doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                        vertical_movement = 0;
+                        horizontal_movement = 0;
+                    }
+
+                    if (rotation_clockwise > 0)
+                        frame_buffer = processRotateCW(frame_buffer, width, height, trueRotation);
+                    else 
+                        frame_buffer = processRotateCCW(frame_buffer, width, height, -trueRotation);
+                    rotation_clockwise = 0;
+                }
+            }
+
+            else {
+                //POTENTIAL FOR OPTIMIZATION HERE. ALREADY CHECKING NEXT VALUE. MIGHT AS WELL SKIP IT. JUST ADD +2 TO COUNTER INSTEAD OF +1 IF THE SAME AND ACCUMULATE NEXT VALUE
+                if (!strcmp(sensor_values[sensorValueIdx + 1].key, "CW") || !strcmp(sensor_values[sensorValueIdx + 1].key, "CCW")) {
+                    //do nothing
+                }
+                else if (rotation_clockwise != 0) {
+                    int trueRotation = rotation_clockwise % 4;
+
+                    if (trueRotation != 0) {
+
+                        if (vertical_movement != 0 || horizontal_movement != 0) {
+                            doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                            vertical_movement = 0;
+                            horizontal_movement = 0;
+                        }
+
+                        if (rotation_clockwise > 0)
+                            frame_buffer = processRotateCW(frame_buffer, width, height, trueRotation);
+                        else 
+                            frame_buffer = processRotateCCW(frame_buffer, width, height, -trueRotation);
+                        rotation_clockwise = 0;
+                    }
+                }
+            }
+        }
+
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "MX")) {
+
+            mirrorX++;
+
+            if (!strcmp(sensor_values[sensorValueIdx + 1].key, "MX") && mod25_frames != 0) {
+                //do nothing
+            }
+
+            else if (mirrorX %2 != 0) {
+                if (vertical_movement != 0 || horizontal_movement != 0) {
+                    doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                    vertical_movement = 0;
+                    horizontal_movement = 0;
+                }
+
+                frame_buffer = processMirrorX(frame_buffer, width, height, 1);
+                mirrorX = 0;
+            }
 //            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "MX")) {
-            frame_buffer = processMirrorX(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
-//            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "MY")) {
-            frame_buffer = processMirrorY(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        } 
+
+        else if (!strcmp(sensor_values[sensorValueIdx].key, "MY")) {
+
+            mirrorY++;
+
+            if (!strcmp(sensor_values[sensorValueIdx + 1].key, "MY") && mod25_frames != 0) {
+                //do nothing
+            }
+
+            else if (mirrorY %2 != 0) {
+                if (vertical_movement != 0 || horizontal_movement != 0) {
+                    doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                    vertical_movement = 0;
+                    horizontal_movement = 0;
+                }
+
+                frame_buffer = processMirrorY(frame_buffer, width, height, 1);
+                mirrorY = 0;
+            }
 //            printBMP(width, height, frame_buffer);
         }
-        processed_frames += 1;
-        if (processed_frames % 25 == 0) {
-            verifyFrame(frame_buffer, width, height, grading_mode);
+
+        //processed_frames += 1;
+
+        //Process every 25 frames regardless of sensor value
+        if (mod25_frames == 0) {
+
+            //translations
+            if (vertical_movement != 0 || horizontal_movement != 0) {
+                    doTranslations(frame_buffer, width, height, vertical_movement, horizontal_movement);
+                    vertical_movement = 0;
+                    horizontal_movement = 0;
+            }
+
+            verifyFrame(frame_buffer, width, height, grading_mode);        
         }
     }
     return;
