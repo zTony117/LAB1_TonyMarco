@@ -110,7 +110,7 @@ unsigned char *processMirrorY(unsigned char *buffer_frame, unsigned width, unsig
  **********************************************************************************************************************/
 void print_team_info(){
     // Please modify this field with something interesting
-    char team_name[] = "Crippling_Depression";
+    char team_name[] = "OH NO";
 
     // Please fill in your information
     char student1_first_name[] = "Zhaotong";
@@ -148,41 +148,398 @@ void print_team_info(){
  ***********************************************************************************************************************
  *
  **********************************************************************************************************************/
+
+int horizontal_shift_matrix[3][3]= {
+		{1, 0, 0},
+		{0, 1, 0},
+		{0, 0, 1}
+};
+int vertical_shift_matrix[3][3]= {
+		{1, 0, 0},
+		{0, 1, 0},
+		{0, 0, 1}
+};
+int rotation_90_CCW_matrix[3][3] = {
+		{0, -1, 0},
+		{1, 0, 0},
+		{0, 0, 1}
+};
+int rotation_180_CCW_matrix[3][3] = {
+		{-1, 0, 0},
+		{0, -1, 0},
+		{0, 0, 1}
+};
+int rotation_270_CCW_matrix[3][3] = {
+		{0, 1, 0},
+		{-1, 0, 0},
+		{0, 0, 1}
+};
+
+int reflection_y_matrix[3][3] = {
+		{-1, 0, 0},
+		{0, 1, 0},
+		{0, 0, 1}
+};
+
+int reflection_x_matrix[3][3] = {
+		{1, 0, 0},
+		{0, -1, 0},
+		{0, 0, 1}
+};
+
+int reset_matrix[3][3] = {
+		{1, 0, 0},
+		{0, 1, 0},
+		{0, 0, 1}
+};
+
+/*
+//11
+int rotate90_mirrorY[2][2] = {
+		{0, 1},
+		{1, 0},
+};
+
+//12
+int rotate180_mirrorY[2][2] = {
+		{1, 0},
+		{0, -1},
+};
+
+//13
+int rotate270_mirrorY[2][2] = {
+		{0, -1},
+		{-1, 0},
+};
+
+//01
+int rotation_90[2][2] = {
+		{0, -1},
+		{1, 0},
+};
+
+//02
+int rotation_180[2][2] = {
+		{-1, 0},
+		{0, -1},
+};
+
+//03
+int rotation_270[2][2] = {
+		{0, 1},
+		{-1, 0},
+};
+
+//10
+int reflection_y[2][2] = {
+		{-1, 0},
+		{0, 1},
+};
+
+//00
+int nochange[2][2] = {
+		{1, 0},
+		{0, 1},
+};
+*/
+
+//rotate then reflect, RExRO
+int final_reflection_and_rotation(int r0c0, int r0c1, int r1c0, int r1c1) {
+	if (r0c0 == 0) {
+		if (r0c1 == 1) {
+			if (r1c0 == 1) {
+				if (r1c1 == 0)
+					//0110
+					return 11;
+				else {
+					//assert(0);
+					return -1;
+				}
+			} else if (r1c0 == -1) {
+				if (r1c1 == 0)
+					//01-10
+					return 3;
+				else {
+					//assert(0);
+					return -1;
+				}
+			} else {
+				//assert(0);
+				return -1;
+			}
+		} else if (r0c1 == -1) {
+			if (r1c0 == 1) {
+				if (r1c1 == 0)
+					//0-110
+					return 1;
+				else {
+					//assert(0);
+					return -1;
+				}
+			} else if (r1c0 == -1) {
+				if (r1c1 == 0)
+					//0-1-10
+					return 13;
+				else {
+					//assert(0);
+					return -1;
+				}
+			}
+
+		} else {
+			//assert(0);
+			return -1;
+		}
+	} else if (r0c0 == 1) {
+		if (r0c1 == 0 && r1c0 == 0){
+			if (r1c1 == 1)
+				//1001
+				return 0;
+			else if (r1c1 == -1)
+				//100-1
+				return 12;
+			else {
+				//assert(0);
+				return -1;
+			}
+		} else {
+			//assert(0);
+			return -1;
+		}
+	} else if (r0c0 == -1){
+		if (r0c1 == 0 && r1c0 == 0){
+			if (r1c1 == 1)
+				//-1001
+				return 10;
+			else if (r1c1 == -1)
+				//-100-1
+				return 2;
+			else {
+				//assert(0);
+				return -1;
+			}
+		} else {
+			//assert(0);
+			return -1;
+		}
+	}
+}
+
+int wrongmatrix=0;
+
+void multiply_two_matrices(int firstMatrix[][3], int secondMatrix[][3], int outputMatrix[][3]) {
+	int i,j, k;
+	for (i=0; i<3; i++) {
+		for (j=0; j<3; j++){
+			outputMatrix[i][j] = 0;
+		}
+	}
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			for (k = 0; k < 3; k++) {
+				outputMatrix[i][j] += firstMatrix[i][k] * secondMatrix[k][j];
+			}
+		}
+	}
+}
+
+void copy_two_matrices(int matrixOriginal[3][3], int matrixCopy[3][3]) {
+	int i, j;
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++) {
+			matrixCopy[i][j] = matrixOriginal[i][j];
+		}
+	}
+}
+
 void implementation_driver(struct kv *sensor_values, int sensor_values_count, unsigned char *frame_buffer,
                            unsigned int width, unsigned int height, bool grading_mode) {
     int processed_frames = 0;
+    int number_of_mirrorX = 0;
+    int number_of_mirrorY = 0;
+    int number_of_rotation = 0;
+    int current_matrix[3][3]= {
+    		{1, 0, 0},
+    		{0, 1, 0},
+    		{0, 0, 1}
+    };
+    int output_matrix[3][3]= {
+    		{0, 0, 0},
+    		{0, 0, 0},
+    		{0, 0, 0}
+    };
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
 //        printf("Processing sensor value #%d: %s, %d\n", sensorValueIdx, sensor_values[sensorValueIdx].key,
 //               sensor_values[sensorValueIdx].value);
         if (!strcmp(sensor_values[sensorValueIdx].key, "W")) {
-            frame_buffer = processMoveUp(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processMoveUp(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	vertical_shift_matrix[1][2] = sensor_values[sensorValueIdx].value;
+        	multiply_two_matrices(vertical_shift_matrix, current_matrix, output_matrix);
+        	if (wrongmatrix == 1) {
+        		printf("W\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         } else if (!strcmp(sensor_values[sensorValueIdx].key, "A")) {
-            frame_buffer = processMoveLeft(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processMoveLeft(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	horizontal_shift_matrix[0][2] = -sensor_values[sensorValueIdx].value;
+        	multiply_two_matrices(horizontal_shift_matrix, current_matrix, output_matrix);
+        	if (wrongmatrix == 1) {
+        		printf("A\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         } else if (!strcmp(sensor_values[sensorValueIdx].key, "S")) {
-            frame_buffer = processMoveDown(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processMoveDown(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	vertical_shift_matrix[1][2] = -sensor_values[sensorValueIdx].value;
+        	multiply_two_matrices(vertical_shift_matrix, current_matrix, output_matrix);
+        	if (wrongmatrix == 1) {
+        		printf("S\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         } else if (!strcmp(sensor_values[sensorValueIdx].key, "D")) {
-            frame_buffer = processMoveRight(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
-//            printBMP(width, height, frame_buffer);
-        } else if (!strcmp(sensor_values[sensorValueIdx].key, "CW")) {
-            frame_buffer = processRotateCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processMoveRight(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	horizontal_shift_matrix[0][2] = sensor_values[sensorValueIdx].value;
+        	multiply_two_matrices(horizontal_shift_matrix, current_matrix, output_matrix);
+        	if (wrongmatrix == 1) {
+        		printf("D\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         } else if (!strcmp(sensor_values[sensorValueIdx].key, "CCW")) {
-            frame_buffer = processRotateCCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processRotateCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	if (sensor_values[sensorValueIdx].value >= 0) {
+            	if (sensor_values[sensorValueIdx].value % 4 == 1) {
+            		multiply_two_matrices(rotation_90_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 1;
+            	} else if (sensor_values[sensorValueIdx].value % 4 == 2) {
+            		multiply_two_matrices(rotation_180_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 2;
+            	} else if (sensor_values[sensorValueIdx].value % 4 == 3) {
+            		multiply_two_matrices(rotation_270_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 3;
+            	} else if (sensor_values[sensorValueIdx].value % 4 == 0) {
+            		copy_two_matrices(current_matrix, output_matrix);
+            	} else
+            		printf("Died by rotation negatives");
+        	} else {
+                //frame_buffer = processRotateCCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            	if (-sensor_values[sensorValueIdx].value % 4 == 1) {
+            		multiply_two_matrices(rotation_270_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 3;
+            	} else if (-sensor_values[sensorValueIdx].value % 4 == 2) {
+            		multiply_two_matrices(rotation_180_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 2;
+            	} else if (-sensor_values[sensorValueIdx].value % 4 == 3) {
+            		multiply_two_matrices(rotation_90_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 1;
+            	} else if (-sensor_values[sensorValueIdx].value % 4 == 0) {
+            		copy_two_matrices(current_matrix, output_matrix);
+            	} else
+            		printf("Died by rotation negatives");
+        	}
+
+
+        	if (wrongmatrix == 1) {
+        		printf("CW\n");
+        		wrongmatrix = 2;
+        	}
+//            printBMP(width, height, frame_buffer);
+        } else if (!strcmp(sensor_values[sensorValueIdx].key, "CW")) {
+        	if (sensor_values[sensorValueIdx].value >= 0) {
+                //frame_buffer = processRotateCCW(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            	if (sensor_values[sensorValueIdx].value % 4 == 1) {
+            		multiply_two_matrices(rotation_270_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 3;
+            	} else if (sensor_values[sensorValueIdx].value % 4 == 2) {
+            		multiply_two_matrices(rotation_180_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 2;
+            	} else if (sensor_values[sensorValueIdx].value % 4 == 3) {
+            		multiply_two_matrices(rotation_90_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 1;
+            	} else if (sensor_values[sensorValueIdx].value % 4 == 0) {
+            		copy_two_matrices(current_matrix, output_matrix);
+            	} else
+            		printf("Died by rotation negatives");
+
+        	} else {
+            	if (-sensor_values[sensorValueIdx].value % 4 == 1) {
+            		multiply_two_matrices(rotation_90_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 1;
+            	} else if (-sensor_values[sensorValueIdx].value % 4 == 2) {
+            		multiply_two_matrices(rotation_180_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 2;
+            	} else if (-sensor_values[sensorValueIdx].value % 4 == 3) {
+            		multiply_two_matrices(rotation_270_CCW_matrix, current_matrix, output_matrix);
+            		number_of_rotation = number_of_rotation + 3;
+            	} else if (-sensor_values[sensorValueIdx].value % 4 == 0) {
+            		copy_two_matrices(current_matrix, output_matrix);
+            	} else
+            		printf("Died by rotation negatives");
+        	}
+
+        	if (wrongmatrix == 1) {
+        		printf("CCW\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         } else if (!strcmp(sensor_values[sensorValueIdx].key, "MX")) {
-            frame_buffer = processMirrorX(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processMirrorX(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	multiply_two_matrices(reflection_x_matrix, current_matrix, output_matrix);
+        	number_of_mirrorX++;
+        	if (wrongmatrix == 1) {
+        		printf("MX\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         } else if (!strcmp(sensor_values[sensorValueIdx].key, "MY")) {
-            frame_buffer = processMirrorY(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+            //frame_buffer = processMirrorY(frame_buffer, width, height, sensor_values[sensorValueIdx].value);
+        	multiply_two_matrices(reflection_y_matrix, current_matrix, output_matrix);
+        	number_of_mirrorY++;
+        	if (wrongmatrix == 1) {
+        		printf("MY\n");
+        		wrongmatrix = 2;
+        	}
 //            printBMP(width, height, frame_buffer);
         }
         processed_frames += 1;
         if (processed_frames % 25 == 0) {
+        	int reflect_and_rotate = final_reflection_and_rotation(output_matrix[0][0], output_matrix[0][1], output_matrix[1][0], output_matrix[1][1]);
+
+//    			printf("Output Matrix: \n");
+//    			printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
+//    			printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
+//    			printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
+//            if (reflect_and_rotate < 0) {
+//        		printf("reflect_and_rotate is negative!\n");
+//        	}
+        	int rotate = reflect_and_rotate % 10;
+        	int reflect = reflect_and_rotate / 10;
+        	if (rotate != 0) {
+        		//printf("reflect_and_rotate: %d\n", reflect_and_rotate);
+        		//printf("Rotate: %d\n", rotate);
+        		frame_buffer = processRotateCCW(frame_buffer, width, height, rotate);
+        	}
+        	if (reflect != 0){
+        		//printf("Reflect: %d\n", reflect);
+        		frame_buffer = processMirrorY(frame_buffer, width, height, 0);
+        	}
+        	if (output_matrix[0][2] != 0) {
+        		frame_buffer = processMoveRight(frame_buffer, width, height, output_matrix[0][2]);
+        	}
+        	if (output_matrix[1][2] != 0) {
+        		frame_buffer = processMoveUp(frame_buffer, width, height, output_matrix[1][2]);
+        	}
+
             verifyFrame(frame_buffer, width, height, grading_mode);
+
+			copy_two_matrices(reset_matrix, output_matrix);
+
         }
+
+
+        copy_two_matrices(output_matrix, current_matrix);
     }
     return;
 }
