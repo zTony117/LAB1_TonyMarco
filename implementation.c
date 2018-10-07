@@ -4,6 +4,18 @@
 #include "utilities.h"  // DO NOT REMOVE this line
 #include "implementation_reference.h"   // DO NOT REMOVE this line
 
+void *eraseImage(unsigned char *buffer_frame, unsigned width, unsigned height, int left, int top, int bottom, int right) {
+    for (int row = top; row <= bottom; row++) {
+        for (int column = left; column <= right; column++) {
+            int position = row * width * 3 + column * 3;
+            //CAN ADD A CHECK FOR WHITE VALUES TO SEE IF THAT HELPS IMPROVE PERFORMANCE
+            buffer_frame[position] = 255;
+            buffer_frame[position + 1] = 255;
+            buffer_frame[position + 2] = 255;
+        }
+    }
+}
+
 /***********************************************************************************************************************
  * @param buffer_frame - pointer pointing to a buffer storing the imported 24-bit bitmap image
  * @param width - width of the imported 24-bit bitmap image
@@ -257,8 +269,19 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
     findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
 
-    //check if values correct
-    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+    //CODE BELOW VERIFIES FUNCTIONALITY OF ERASEIMAGE
+    // printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+
+    // eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
+
+    // leftOffset = 100000;
+    // rightOffset = 0;
+    // topOffset = 0;
+    // bottomOffset = 0;
+
+    // findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+    // //check if values correct
+    // printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 
 
     //Accumulate sensor values if they are translations
