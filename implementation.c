@@ -467,14 +467,14 @@ void translate_coordinates_to_offset(
 	if (*bottomOffset < *topOffset) {
 		buffer = *topOffset;
 		*topOffset = *bottomOffset;
-		*bottomOffset = *buffer;
+		*bottomOffset = buffer;
 		printf("Swapping top and bot offset!\n");
 	}
 
 	if (*rightOffset < *leftOffset) {
 		buffer = *rightOffset;
 		*rightOffset = *leftOffset;
-		*leftOffset = *buffer;
+		*leftOffset = buffer;
 		printf("Swapping left and right offset!\n");
 	}
 
@@ -528,14 +528,16 @@ void copy_two_matrices(int matrixOriginal[3][3], int matrixCopy[3][3]) {
 
 void write_back_to_frame_buffer(
 		unsigned char *frame_buffer,
-		unsigned char ImageBuffer[][],
+		unsigned char **ImageBuffer,
 		int reflect_and_rotate,
 		unsigned int width, unsigned int height,
 		struct coordinates* newtopLeft, struct coordinates* newtopRight,
 		struct coordinates* newbotLeft, struct coordinates* newbotRight) {
 	int topOffset, bottomOffset, leftOffset, rightOffset;
+    int xBuffer = 0;
+    int yBuffer = 0;
 
-	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, newtopLeft, newtopRight, newbotLeft, newbotRight);
 
 	//Scan Directions 8 cases in total
 
@@ -552,8 +554,8 @@ void write_back_to_frame_buffer(
 
 		case 0:
 			//Right Down
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int row = topOffset; row <= bottomOffset; row++) {
 		    	for (int column = leftOffset; column <= rightOffset; column++) {
 		    		int position = row * width * 3 + column * 3;
@@ -570,8 +572,8 @@ void write_back_to_frame_buffer(
 
 		case 1:
 			//Up Right
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 	    	for (int column = leftOffset; column <= rightOffset; column++) {
 	    		for (int row = bottomOffset; row >= topOffset; row--) {
 		    		int position = row * width * 3 + column * 3;
@@ -588,8 +590,8 @@ void write_back_to_frame_buffer(
 
 		case 2:
 			//Left Up
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int row = bottomOffset; row >= topOffset; row--) {
 		    	for (int column = rightOffset; column >= leftOffset; column--) {
 		    		int position = row * width * 3 + column * 3;
@@ -606,8 +608,8 @@ void write_back_to_frame_buffer(
 
 		case 3:
 			//Down Left
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int column = rightOffset; column >= leftOffset; column--) {
 		    	for (int row = topOffset; row <= bottomOffset; row++) {
 		    		int position = row * width * 3 + column * 3;
@@ -624,8 +626,8 @@ void write_back_to_frame_buffer(
 
 		case 10:
 			//Left Down
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int row = topOffset; row <= bottomOffset; row++) {
 		    	for (int column = rightOffset; column >= leftOffset; column--) {
 		    		int position = row * width * 3 + column * 3;
@@ -642,8 +644,8 @@ void write_back_to_frame_buffer(
 
 		case 11:
 			//Up Left
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int column = rightOffset; column >= leftOffset; column--) {
 		    	for (int row = bottomOffset; row >= topOffset; row--) {
 		    		int position = row * width * 3 + column * 3;
@@ -660,8 +662,8 @@ void write_back_to_frame_buffer(
 
 		case 12:
 			//Right up
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int row = bottomOffset; row >= topOffset; row--) {
 		    	for (int column = leftOffset; column <= rightOffset; column++) {
 		    		int position = row * width * 3 + column * 3;
@@ -678,8 +680,8 @@ void write_back_to_frame_buffer(
 
 		case 13:
 			//Down Right
-		    int xBuffer = 0;
-		    int yBuffer = 0;
+		    xBuffer = 0;
+		    yBuffer = 0;
 		    for (int column = leftOffset; column <= rightOffset; column++) {
 		    	for (int row = topOffset; row <= bottomOffset; row++) {
 		    		int position = row * width * 3 + column * 3;
