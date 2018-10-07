@@ -389,10 +389,48 @@ void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int hei
     //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 }
 
+void calculate_new_coordinates_after_transformation(
+		int transformation[3][3],
+		struct coordinates *oldTopLeft, struct coordinates *oldTopRight,
+		struct coordinates *oldBotLeft, struct coordinates *oldBotRight,
+		struct coordinates *newTopLeft, struct coordinates *newTopRight,
+		struct coordinates *newBotLeft, struct coordinates *newBotRight) {
+
+	newTopLeft->x_coordinate = transformation[0][0] * oldTopLeft->x_coordinate + transformation[0][1] * oldTopLeft->y_coordinate;
+	newTopLeft->y_coordinate = transformation[1][0] * oldTopLeft->x_coordinate + transformation[1][1] * oldTopLeft->y_coordinate;
+	newTopLeft->x_coordinate = newTopLeft->x_coordinate + transformation[0][2];
+	newTopLeft->y_coordinate = newTopLeft->y_coordinate + transformation[1][2];
+
+	newTopRight->x_coordinate = transformation[0][0] * oldTopRight->x_coordinate + transformation[0][1] * oldTopRight->y_coordinate;
+	newTopRight->y_coordinate = transformation[1][0] * oldTopRight->x_coordinate + transformation[1][1] * oldTopRight->y_coordinate;
+	newTopRight->x_coordinate = newTopRight->x_coordinate + transformation[0][2];
+	newTopRight->y_coordinate = newTopRight->y_coordinate + transformation[1][2];
+
+	newBotLeft->x_coordinate = transformation[0][0] * oldBotLeft->x_coordinate + transformation[0][1] * oldBotLeft->y_coordinate;
+	newBotLeft->y_coordinate = transformation[1][0] * oldBotLeft->x_coordinate + transformation[1][1] * oldBotLeft->y_coordinate;
+	newBotLeft->x_coordinate = newBotLeft->x_coordinate + transformation[0][2];
+	newBotLeft->y_coordinate = newBotLeft->y_coordinate + transformation[1][2];
+
+	newBotRight->x_coordinate = transformation[0][0] * oldBotRight->x_coordinate + transformation[0][1] * oldBotRight->y_coordinate;
+	newBotRight->y_coordinate = transformation[1][0] * oldBotRight->x_coordinate + transformation[1][1] * oldBotRight->y_coordinate;
+	newBotRight->x_coordinate = newBotRight->x_coordinate + transformation[0][2];
+	newBotRight->y_coordinate = newBotRight->y_coordinate + transformation[1][2];
+	printf("Calculate new coordinates after transformation\n");
+	printf("Old TopLeft coordinates: (%d, %d)\n", oldTopLeft->x_coordinate, oldTopLeft->y_coordinate);
+	printf("Old TopRight coordinates: (%d, %d)\n", oldTopRight->x_coordinate, oldTopRight->y_coordinate);
+	printf("Old BotLeft coordinates: (%d, %d)\n", oldBotLeft->x_coordinate, oldBotLeft->y_coordinate);
+	printf("Old BotRight coordinates: (%d, %d)\n", oldBotRight->x_coordinate, oldBotRight->y_coordinate);
+	printf("New TopLeft coordinates: (%d, %d)\n", newTopLeft->x_coordinate, newTopLeft->y_coordinate);
+	printf("New TopRight coordinates: (%d, %d)\n", newTopRight->x_coordinate, newTopRight->y_coordinate);
+	printf("New BotLeft coordinates: (%d, %d)\n", newBotLeft->x_coordinate, newBotLeft->y_coordinate);
+	printf("New BotRight coordinates: (%d, %d)\n", newBotRight->x_coordinate, newBotRight->y_coordinate);
+}
+
 void translate_offset_to_coordinates(
 		unsigned int width, unsigned int height,
 		int topOffset, int leftOffset, int bottomOffset, int rightOffset,
-		struct coordinates* topLeft, struct coordinates* topRight, struct coordinates* botLeft, struct coordinates* botRight) {
+		struct coordinates* topLeft, struct coordinates* topRight,
+		struct coordinates* botLeft, struct coordinates* botRight) {
 
 	topLeft->x_coordinate = leftOffset - width/2;
 	topLeft->y_coordinate = height/2 - topOffset;
@@ -406,12 +444,12 @@ void translate_offset_to_coordinates(
 	botRight->x_coordinate = rightOffset - width/2;
 	botRight->y_coordinate = height/2 - bottomOffset;
 
-	printf("Translating offset to coordinates\n");
-	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
-	printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
-	printf("TopRight coordinates: (%d, %d)\n", topRight->x_coordinate, topRight->y_coordinate);
-	printf("BotLeft coordinates: (%d, %d)\n", botLeft->x_coordinate, botLeft->y_coordinate);
-	printf("BotRight coordinates: (%d, %d)\n", botRight->x_coordinate, botRight->y_coordinate);
+//	printf("Translating offset to coordinates\n");
+//	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+//	printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
+//	printf("TopRight coordinates: (%d, %d)\n", topRight->x_coordinate, topRight->y_coordinate);
+//	printf("BotLeft coordinates: (%d, %d)\n", botLeft->x_coordinate, botLeft->y_coordinate);
+//	printf("BotRight coordinates: (%d, %d)\n", botRight->x_coordinate, botRight->y_coordinate);
 }
 
 void translate_coordinates_to_offset(
@@ -423,9 +461,10 @@ void translate_coordinates_to_offset(
 	*rightOffset = botRight->x_coordinate + width/2;
 	*topOffset = height/2 - topLeft->y_coordinate;
 	*bottomOffset = height/2 - botRight->y_coordinate;
-	printf("Translating coordinates to offset");
-	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", *leftOffset, *rightOffset, *topOffset, *bottomOffset);
+//	printf("Translating coordinates to offset");
+//	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", *leftOffset, *rightOffset, *topOffset, *bottomOffset);
 }
+
 
 
 void *eraseImage(unsigned char *buffer_frame, unsigned width, unsigned height, int left, int top, int bottom, int right) {
@@ -487,7 +526,9 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     		{0, 0, 0}
     };
 
-    struct coordinates topLeft, topRight, botLeft, botRight;
+    struct coordinates oldtopLeft, oldtopRight, oldbotLeft, oldbotRight;
+
+    struct coordinates newtopLeft, newtopRight, newbotLeft, newbotRight;
 
     int leftOffset = 100000;
         int rightOffset = 0;
@@ -497,9 +538,9 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
         findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
 
-        translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &topLeft, &topRight, &botLeft, &botRight);
+        translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
 
-        translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &topLeft, &topRight, &botLeft, &botRight);
+        translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
 
         //test if translate correctly
 
@@ -642,10 +683,10 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         if (processed_frames % 25 == 0) {
         	int reflect_and_rotate = final_reflection_and_rotation(output_matrix[0][0], output_matrix[0][1], output_matrix[1][0], output_matrix[1][1]);
 
-//    			printf("Output Matrix: \n");
-//    			printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
-//    			printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
-//    			printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
+    			printf("Output Matrix: \n");
+    			printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
+    			printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
+    			printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
 //            if (reflect_and_rotate < 0) {
 //        		printf("reflect_and_rotate is negative!\n");
 //        	}
@@ -667,9 +708,16 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         		frame_buffer = processMoveUp(frame_buffer, width, height, output_matrix[1][2]);
         	}
 
+        	calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+
             verifyFrame(frame_buffer, width, height, grading_mode);
 
 			copy_two_matrices(reset_matrix, output_matrix);
+
+			oldtopLeft = newtopLeft;
+			oldtopRight = newtopRight;
+			oldbotLeft = newbotLeft;
+			oldbotRight = newbotRight;
 
         }
 
