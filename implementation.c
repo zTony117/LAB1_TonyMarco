@@ -149,6 +149,11 @@ void print_team_info(){
  *
  **********************************************************************************************************************/
 
+struct coordinates {
+    int x_coordinate;
+    int y_coordinate;
+};
+
 int horizontal_shift_matrix[3][3]= {
 		{1, 0, 0},
 		{0, 1, 0},
@@ -384,6 +389,44 @@ void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int hei
     //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 }
 
+void translate_offset_to_coordinates(
+		unsigned int width, unsigned int height,
+		int topOffset, int leftOffset, int bottomOffset, int rightOffset,
+		struct coordinates* topLeft, struct coordinates* topRight, struct coordinates* botLeft, struct coordinates* botRight) {
+
+	topLeft->x_coordinate = leftOffset - width/2;
+	topLeft->y_coordinate = height/2 - topOffset;
+
+	topRight->x_coordinate = rightOffset - width/2;
+	topRight->y_coordinate = height/2 - topOffset;
+
+	botLeft->x_coordinate = leftOffset - width/2;
+	botLeft->y_coordinate = height/2 - bottomOffset;
+
+	botRight->x_coordinate = rightOffset - width/2;
+	botRight->y_coordinate = height/2 - bottomOffset;
+
+	printf("Translating offset to coordinates\n");
+	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+	printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
+	printf("TopRight coordinates: (%d, %d)\n", topRight->x_coordinate, topRight->y_coordinate);
+	printf("BotLeft coordinates: (%d, %d)\n", botLeft->x_coordinate, botLeft->y_coordinate);
+	printf("BotRight coordinates: (%d, %d)\n", botRight->x_coordinate, botRight->y_coordinate);
+}
+
+void translate_coordinates_to_offset(
+		unsigned int width, unsigned int height,
+		int *topOffset, int *leftOffset, int *bottomOffset, int *rightOffset,
+		struct coordinates* topLeft, struct coordinates* topRight, struct coordinates* botLeft, struct coordinates* botRight) {
+
+	*leftOffset = topLeft->x_coordinate + width/2;
+	*rightOffset = botRight->x_coordinate + width/2;
+	*topOffset = height/2 - topLeft->y_coordinate;
+	*bottomOffset = height/2 - botRight->y_coordinate;
+	printf("Translating coordinates to offset");
+	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", *leftOffset, *rightOffset, *topOffset, *bottomOffset);
+}
+
 
 void *eraseImage(unsigned char *buffer_frame, unsigned width, unsigned height, int left, int top, int bottom, int right) {
     for (int row = top; row <= bottom; row++) {
@@ -444,6 +487,8 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     		{0, 0, 0}
     };
 
+    struct coordinates topLeft, topRight, botLeft, botRight;
+
     int leftOffset = 100000;
         int rightOffset = 0;
         int topOffset = 0;
@@ -451,6 +496,12 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 
         //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
         findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+
+        translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &topLeft, &topRight, &botLeft, &botRight);
+
+        translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &topLeft, &topRight, &botLeft, &botRight);
+
+        //test if translate correctly
 
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
 //        printf("Processing sensor value #%d: %s, %d\n", sensorValueIdx, sensor_values[sensorValueIdx].key,
