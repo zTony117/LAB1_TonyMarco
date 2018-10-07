@@ -528,16 +528,13 @@ void copy_two_matrices(int matrixOriginal[3][3], int matrixCopy[3][3]) {
 
 void write_back_to_frame_buffer(
 		unsigned char *frame_buffer,
-		unsigned char **ImageBuffer,
+		unsigned char *ImageBuffer,
 		int reflect_and_rotate,
 		unsigned int width, unsigned int height,
-		struct coordinates* newtopLeft, struct coordinates* newtopRight,
-		struct coordinates* newbotLeft, struct coordinates* newbotRight) {
-	int topOffset, bottomOffset, leftOffset, rightOffset;
+		int topOffset, int leftOffset, int bottomOffset, int rightOffset) {
     int xBuffer = 0;
     int yBuffer = 0;
-
-	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, newtopLeft, newtopRight, newbotLeft, newbotRight);
+    int image_width = rightOffset - leftOffset;
 
 	//Scan Directions 8 cases in total
 
@@ -550,6 +547,8 @@ void write_back_to_frame_buffer(
 	//Right Up(rotate180_mirrorY, MirrorX)
 	//Down Right(rotate270_mirrorY)
 
+    //ImageBuffer[yBuffer][xBuffer] -> *((ImageBuffer+yBuffer*image_width)+xBuffer)
+
 	switch(reflect_and_rotate) {
 
 		case 0:
@@ -559,9 +558,9 @@ void write_back_to_frame_buffer(
 		    for (int row = topOffset; row <= bottomOffset; row++) {
 		    	for (int column = leftOffset; column <= rightOffset; column++) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -577,9 +576,9 @@ void write_back_to_frame_buffer(
 	    	for (int column = leftOffset; column <= rightOffset; column++) {
 	    		for (int row = bottomOffset; row >= topOffset; row--) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -595,9 +594,9 @@ void write_back_to_frame_buffer(
 		    for (int row = bottomOffset; row >= topOffset; row--) {
 		    	for (int column = rightOffset; column >= leftOffset; column--) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -613,9 +612,9 @@ void write_back_to_frame_buffer(
 		    for (int column = rightOffset; column >= leftOffset; column--) {
 		    	for (int row = topOffset; row <= bottomOffset; row++) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -631,9 +630,9 @@ void write_back_to_frame_buffer(
 		    for (int row = topOffset; row <= bottomOffset; row++) {
 		    	for (int column = rightOffset; column >= leftOffset; column--) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -649,9 +648,9 @@ void write_back_to_frame_buffer(
 		    for (int column = rightOffset; column >= leftOffset; column--) {
 		    	for (int row = bottomOffset; row >= topOffset; row--) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -667,9 +666,9 @@ void write_back_to_frame_buffer(
 		    for (int row = bottomOffset; row >= topOffset; row--) {
 		    	for (int column = leftOffset; column <= rightOffset; column++) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -685,9 +684,9 @@ void write_back_to_frame_buffer(
 		    for (int column = leftOffset; column <= rightOffset; column++) {
 		    	for (int row = topOffset; row <= bottomOffset; row++) {
 		    		int position = row * width * 3 + column * 3;
-		    		frame_buffer[position] = ImageBuffer[yBuffer][xBuffer];
-		    		frame_buffer[position + 1] = ImageBuffer[yBuffer][xBuffer + 1];
-		    		frame_buffer[position + 2] = ImageBuffer[yBuffer][xBuffer + 2];
+		    		frame_buffer[position] = *((ImageBuffer+yBuffer*image_width)+xBuffer);
+		    		frame_buffer[position + 1] = *((ImageBuffer+yBuffer*image_width)+xBuffer+1);
+		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		xBuffer+=3;
 		    	}
@@ -922,7 +921,12 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 
             multiply_two_matrices(output_matrix, old_cumulated_output_matrix, updated_cumulated_output_matrix);
 
-        	int reflect_and_rotate = final_reflection_and_rotation(output_matrix[0][0], output_matrix[0][1], output_matrix[1][0], output_matrix[1][1]);
+        	int reflect_and_rotate =
+        			final_reflection_and_rotation(
+        					updated_cumulated_output_matrix[0][0],
+							updated_cumulated_output_matrix[0][1],
+							updated_cumulated_output_matrix[1][0],
+							updated_cumulated_output_matrix[1][1]);
 
     			printf("Output Matrix: \n");
     			printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
@@ -931,6 +935,9 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 //            if (reflect_and_rotate < 0) {
 //        		printf("reflect_and_rotate is negative!\n");
 //        	}
+
+    		/*
+    		 * Old code that uses process functions
         	int rotate = reflect_and_rotate % 10;
         	int reflect = reflect_and_rotate / 10;
         	if (rotate != 0) {
@@ -948,8 +955,20 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	if (output_matrix[1][2] != 0) {
         		frame_buffer = processMoveUp(frame_buffer, width, height, output_matrix[1][2]);
         	}
+        	*/
 
         	calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+
+        	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+
+        	eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
+
+        	write_back_to_frame_buffer(
+        			frame_buffer,
+					(char*)ImageBuffer,
+					reflect_and_rotate,
+					width, height,
+					topOffset, leftOffset, bottomOffset, rightOffset);
 
             verifyFrame(frame_buffer, width, height, grading_mode);
 
