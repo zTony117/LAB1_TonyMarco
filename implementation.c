@@ -325,7 +325,82 @@ int final_reflection_and_rotation(int r0c0, int r0c1, int r1c0, int r1c1) {
 	}
 }
 
+void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int height, int *topOffset, int *leftOffset, int *bottomOffset, int *rightOffset) {
+
+    bool topFound = false;
+    bool bottomFound = false;
+
+    int position = 0;
+
+    //START FROM ORIGIN (TOP LEFT), TO FIND TOPOFFSET AND LEFTOFFSET
+    for (int row = 0; row < height; row++) {
+        for (int column = 0; column < width; column++) {
+            position = row * width * 3 + column * 3;
+            if (buffer_frame[position] == 255 && buffer_frame[position + 1] == 255 && buffer_frame[position + 2] == 255) {
+                continue;
+            }
+            else {
+                if (column < *leftOffset){
+                    *leftOffset = column;
+                }
+                break;
+            }
+        }
+        if (buffer_frame[position] == 255 && buffer_frame[position + 1] == 255 && buffer_frame[position + 2] == 255) {
+                continue;
+        }
+        else {
+            if (topFound == false) {
+                *topOffset = row;
+                topFound = true;
+            }
+        }
+    }
+
+    //START FROM BOTTOM RIGHT TO FIND BOTTOMOFFSET AND RIGHTOFFSET
+    for (int row = height - 1; row >= 0; row--) {
+        for (int column = width - 1; column >= 0; column--) {
+            position = row * width * 3 + column * 3;
+            if (buffer_frame[position] == 255 && buffer_frame[position + 1] == 255 && buffer_frame[position + 2] == 255) {
+                continue;
+            }
+            else {
+                if (column > *rightOffset){
+                    *rightOffset = column;
+                }
+                break;
+            }
+        }
+        if (buffer_frame[position] == 255 && buffer_frame[position + 1] == 255 && buffer_frame[position + 2] == 255) {
+                continue;
+        }
+        else {
+            if (bottomFound == false) {
+                *bottomOffset = row;
+                bottomFound = true;
+            }
+        }
+    }
+    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+}
+
+
+void *eraseImage(unsigned char *buffer_frame, unsigned width, unsigned height, int left, int top, int bottom, int right) {
+    for (int row = top; row <= bottom; row++) {
+        for (int column = left; column <= right; column++) {
+            int position = row * width * 3 + column * 3;
+            //CAN ADD A CHECK FOR WHITE VALUES TO SEE IF THAT HELPS IMPROVE PERFORMANCE
+            buffer_frame[position] = 255;
+            buffer_frame[position + 1] = 255;
+            buffer_frame[position + 2] = 255;
+        }
+    }
+}
+
+
 int wrongmatrix=0;
+
+
 
 void multiply_two_matrices(int firstMatrix[][3], int secondMatrix[][3], int outputMatrix[][3]) {
 	int i,j, k;
@@ -368,6 +443,15 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     		{0, 0, 0},
     		{0, 0, 0}
     };
+
+    int leftOffset = 100000;
+        int rightOffset = 0;
+        int topOffset = 0;
+        int bottomOffset = 0;
+
+        //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
+        findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
 //        printf("Processing sensor value #%d: %s, %d\n", sensorValueIdx, sensor_values[sensorValueIdx].key,
 //               sensor_values[sensorValueIdx].value);
