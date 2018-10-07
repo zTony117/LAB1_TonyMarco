@@ -132,14 +132,10 @@ unsigned char *doTranslations(unsigned char *frame_buffer, unsigned width, unsig
     return frame_buffer;
 }
 
-void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int height) {
-
-    int topOffset = 0;
-
-    //initialize to big value
-    int leftOffset = 100000;
+void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int height, int *topOffset, int *leftOffset, int *bottomOffset, int *rightOffset) {
 
     bool topFound = false;
+    bool bottomFound = false;
 
     int position = 0;
 
@@ -151,8 +147,8 @@ void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int hei
                 continue;
             }
             else {
-                if (column < leftOffset){
-                    leftOffset = column;
+                if (column < *leftOffset){
+                    *leftOffset = column;
                 }
                 break;
             }
@@ -162,17 +158,12 @@ void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int hei
         }
         else {
             if (topFound == false) {
-                topOffset = row;
+                *topOffset = row;
                 topFound = true;
             }
         }
     }
-
-
-    int bottomOffset = 0;
-    int rightOffset = 0;
-    bool bottomFound = false;
-
+    
     //START FROM BOTTOM RIGHT TO FIND BOTTOMOFFSET AND RIGHTOFFSET
     for (int row = height - 1; row >= 0; row--) {
         for (int column = width - 1; column >= 0; column--) {
@@ -181,8 +172,8 @@ void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int hei
                 continue;
             }
             else {
-                if (column > rightOffset){
-                    rightOffset = column;
+                if (column > *rightOffset){
+                    *rightOffset = column;
                 }
                 break;
             }
@@ -192,12 +183,12 @@ void findImage(unsigned char *buffer_frame, unsigned int width, unsigned int hei
         }
         else {
             if (bottomFound == false) {
-                bottomOffset = row;
+                *bottomOffset = row;
                 bottomFound = true;
             }
         }
     }
-    printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 }
 
 
@@ -258,8 +249,17 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 
     int mod25_frames = 0;
 
+    int leftOffset = 100000;
+    int rightOffset = 0;
+    int topOffset = 0;
+    int bottomOffset = 0;
+
     //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
-    //findImage(frame_buffer, width, height);
+    findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+
+    //check if values correct
+    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+
 
     //Accumulate sensor values if they are translations
     //If rotation or mirror, accumulate if next instruction is the same, otherwise immediately process rotation or mirror
