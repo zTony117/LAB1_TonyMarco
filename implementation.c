@@ -531,12 +531,44 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     struct coordinates newtopLeft, newtopRight, newbotLeft, newbotRight;
 
     int leftOffset = 100000;
-        int rightOffset = 0;
-        int topOffset = 0;
-        int bottomOffset = 0;
+    int rightOffset = 0;
+    int topOffset = 0;
+    int bottomOffset = 0;
 
-        //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
-        findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+    //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
+    findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+
+    printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+
+    int imageBufferWidth = (rightOffset - leftOffset + 1) * 3;
+    int imageBufferHeight = (bottomOffset - topOffset) + 1;
+    //printf("imageBufferWidth %d imageBufferheight %d\n", imageBufferWidth, imageBufferHeight);
+    //put image into a buffer
+    unsigned char ImageBuffer[imageBufferHeight][imageBufferWidth];
+
+    int xBuffer = 0;
+    int yBuffer = 0;
+    for (int row = topOffset; row <= bottomOffset; row++) {
+    	for (int column = leftOffset; column <= rightOffset; column++) {
+    		int position = row * width * 3 + column * 3;
+    		ImageBuffer[yBuffer][xBuffer] = frame_buffer[position];
+    		ImageBuffer[yBuffer][xBuffer + 1] = frame_buffer[position + 1];
+    		ImageBuffer[yBuffer][xBuffer + 2] = frame_buffer[position + 2];
+    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
+    		xBuffer++;
+    	}
+    	yBuffer++;
+    	xBuffer = 0;
+    }
+
+    //test image buffer
+    for (int y = 0; y < imageBufferHeight; y++) {
+    	for (int x = 0; x < imageBufferWidth; x++) {
+    		printf("%d, %d, %d  ", ImageBuffer[y][x], ImageBuffer[y][x + 1], ImageBuffer[y][x + 2]);
+    	}
+    	printf("\n");
+    }
+
 
         translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
 
