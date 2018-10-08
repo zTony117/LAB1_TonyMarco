@@ -415,15 +415,15 @@ void calculate_new_coordinates_after_transformation(
 	newBotRight->y_coordinate = transformation[1][0] * oldBotRight->x_coordinate + transformation[1][1] * oldBotRight->y_coordinate;
 	newBotRight->x_coordinate = newBotRight->x_coordinate + transformation[0][2];
 	newBotRight->y_coordinate = newBotRight->y_coordinate + transformation[1][2];
-	printf("Calculate new coordinates after transformation\n");
-	printf("Old TopLeft coordinates: (%d, %d)\n", oldTopLeft->x_coordinate, oldTopLeft->y_coordinate);
-	printf("Old TopRight coordinates: (%d, %d)\n", oldTopRight->x_coordinate, oldTopRight->y_coordinate);
-	printf("Old BotLeft coordinates: (%d, %d)\n", oldBotLeft->x_coordinate, oldBotLeft->y_coordinate);
-	printf("Old BotRight coordinates: (%d, %d)\n", oldBotRight->x_coordinate, oldBotRight->y_coordinate);
-	printf("New TopLeft coordinates: (%d, %d)\n", newTopLeft->x_coordinate, newTopLeft->y_coordinate);
-	printf("New TopRight coordinates: (%d, %d)\n", newTopRight->x_coordinate, newTopRight->y_coordinate);
-	printf("New BotLeft coordinates: (%d, %d)\n", newBotLeft->x_coordinate, newBotLeft->y_coordinate);
-	printf("New BotRight coordinates: (%d, %d)\n", newBotRight->x_coordinate, newBotRight->y_coordinate);
+	// printf("Calculate new coordinates after transformation\n");
+	// printf("Old TopLeft coordinates: (%d, %d)\n", oldTopLeft->x_coordinate, oldTopLeft->y_coordinate);
+	// printf("Old TopRight coordinates: (%d, %d)\n", oldTopRight->x_coordinate, oldTopRight->y_coordinate);
+	// printf("Old BotLeft coordinates: (%d, %d)\n", oldBotLeft->x_coordinate, oldBotLeft->y_coordinate);
+	// printf("Old BotRight coordinates: (%d, %d)\n", oldBotRight->x_coordinate, oldBotRight->y_coordinate);
+	// printf("New TopLeft coordinates: (%d, %d)\n", newTopLeft->x_coordinate, newTopLeft->y_coordinate);
+	// printf("New TopRight coordinates: (%d, %d)\n", newTopRight->x_coordinate, newTopRight->y_coordinate);
+	// printf("New BotLeft coordinates: (%d, %d)\n", newBotLeft->x_coordinate, newBotLeft->y_coordinate);
+	// printf("New BotRight coordinates: (%d, %d)\n", newBotRight->x_coordinate, newBotRight->y_coordinate);
 }
 
 void translate_offset_to_coordinates(
@@ -483,12 +483,12 @@ void translate_offset_to_coordinates(
 		}
 	}
 
-	printf("Translating offset to coordinates\n");
-	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
-	printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
-	printf("TopRight coordinates: (%d, %d)\n", topRight->x_coordinate, topRight->y_coordinate);
-	printf("BotLeft coordinates: (%d, %d)\n", botLeft->x_coordinate, botLeft->y_coordinate);
-	printf("BotRight coordinates: (%d, %d)\n", botRight->x_coordinate, botRight->y_coordinate);
+	// printf("Translating offset to coordinates\n");
+	// printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+	// printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
+	// printf("TopRight coordinates: (%d, %d)\n", topRight->x_coordinate, topRight->y_coordinate);
+	// printf("BotLeft coordinates: (%d, %d)\n", botLeft->x_coordinate, botLeft->y_coordinate);
+	// printf("BotRight coordinates: (%d, %d)\n", botRight->x_coordinate, botRight->y_coordinate);
 }
 
 void translate_coordinates_to_offset(
@@ -534,18 +534,18 @@ void translate_coordinates_to_offset(
 		buffer = *topOffset;
 		*topOffset = *bottomOffset;
 		*bottomOffset = buffer;
-		printf("Swapping top and bot offset!\n");
+		//printf("Swapping top and bot offset!\n");
 	}
 
 	if (*rightOffset < *leftOffset) {
 		buffer = *rightOffset;
 		*rightOffset = *leftOffset;
 		*leftOffset = buffer;
-		printf("Swapping left and right offset!\n");
+		//printf("Swapping left and right offset!\n");
 	}
 
-	printf("Translating coordinates to offset\n");
-	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", *leftOffset, *rightOffset, *topOffset, *bottomOffset);
+	// printf("Translating coordinates to offset\n");
+	// printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", *leftOffset, *rightOffset, *topOffset, *bottomOffset);
 }
 
 
@@ -622,7 +622,7 @@ void write_back_to_frame_buffer(
 			//Right Down
 		    xBuffer = 0;
 		    yBuffer = 0;
-		    printf("No reflection or translation\n");
+		    //printf("No reflection or translation\n");
 		    for (int row = topOffset; row <= bottomOffset; row++) {
 		    	for (int column = leftOffset; column <= rightOffset; column++) {
 		    		int position = row * width * 3 + column * 3;
@@ -834,7 +834,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
     findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
 
-    printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 
     //START PUTTING IMAGE INTO 2D BUFFER ARRAY
     int imageBufferWidth = (rightOffset - leftOffset + 1) * 3;
@@ -871,7 +871,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
 
         translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
-        printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+        //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
         //test if translate correctly
 
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
@@ -882,7 +882,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	vertical_shift_matrix[1][2] = sensor_values[sensorValueIdx].value;
         	multiply_two_matrices(vertical_shift_matrix, current_matrix, output_matrix);
         	if (wrongmatrix == 1) {
-        		printf("W\n");
+        		//printf("W\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -891,7 +891,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	horizontal_shift_matrix[0][2] = -sensor_values[sensorValueIdx].value;
         	multiply_two_matrices(horizontal_shift_matrix, current_matrix, output_matrix);
         	if (wrongmatrix == 1) {
-        		printf("A\n");
+        		//printf("A\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -900,7 +900,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	vertical_shift_matrix[1][2] = -sensor_values[sensorValueIdx].value;
         	multiply_two_matrices(vertical_shift_matrix, current_matrix, output_matrix);
         	if (wrongmatrix == 1) {
-        		printf("S\n");
+        		//printf("S\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -909,7 +909,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	horizontal_shift_matrix[0][2] = sensor_values[sensorValueIdx].value;
         	multiply_two_matrices(horizontal_shift_matrix, current_matrix, output_matrix);
         	if (wrongmatrix == 1) {
-        		printf("D\n");
+        		//printf("D\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -948,7 +948,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 
 
         	if (wrongmatrix == 1) {
-        		printf("CW\n");
+        		//printf("CW\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -986,7 +986,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	}
 
         	if (wrongmatrix == 1) {
-        		printf("CCW\n");
+        		//printf("CCW\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -995,7 +995,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	multiply_two_matrices(reflection_x_matrix, current_matrix, output_matrix);
         	number_of_mirrorX++;
         	if (wrongmatrix == 1) {
-        		printf("MX\n");
+        		//printf("MX\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -1004,7 +1004,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	multiply_two_matrices(reflection_y_matrix, current_matrix, output_matrix);
         	number_of_mirrorY++;
         	if (wrongmatrix == 1) {
-        		printf("MY\n");
+        		//printf("MY\n");
         		wrongmatrix = 2;
         	}
 //            printBMP(width, height, frame_buffer);
@@ -1021,10 +1021,10 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 							updated_cumulated_output_matrix[1][0],
 							updated_cumulated_output_matrix[1][1]);
 
-    			printf("Output Matrix: \n");
-    			printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
-    			printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
-    			printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
+    			// printf("Output Matrix: \n");
+    			// printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
+    			// printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
+    			// printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
 //            if (reflect_and_rotate < 0) {
 //        		printf("reflect_and_rotate is negative!\n");
 //        	}
