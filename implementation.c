@@ -1049,31 +1049,44 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         		frame_buffer = processMoveUp(frame_buffer, width, height, output_matrix[1][2]);
         	}
         	*/
-    		eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
-    		//PRINT FRAME
-    		// for (int row = 0; row < height; row++) {
-    		// 	for (int column = 0; column < width; column++) {
-    		// 		int position_rendered_frame = row * width * 3 + column * 3;
-    		// 		printf("%d ", frame_buffer[position_rendered_frame]);
-    		// 	}
-    		// 	printf("\n");
-    		// }
 
-        	calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
 
-        	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+        	int orientation_changed_since_last_frame =
+        			final_reflection_and_rotation(
+        					output_matrix[0][0],
+							output_matrix[0][1],
+							output_matrix[1][0],
+							output_matrix[1][1]);
 
-        	//printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
-        	
-        	//eraseFrame(frame_buffer, width, height);
+        	if (orientation_changed_since_last_frame != 0 || output_matrix[0][2] != 0 || output_matrix[1][2]) {
 
-        	//printf("reflect and rotate %d\n", reflect_and_rotate);
-        	write_back_to_frame_buffer(
-        			frame_buffer,
-					(unsigned char*)ImageBuffer,
-					reflect_and_rotate,
-					width, height,
-					topOffset, leftOffset, bottomOffset, rightOffset, imageBufferWidth/3);
+				eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
+				//PRINT FRAME
+				// for (int row = 0; row < height; row++) {
+				// 	for (int column = 0; column < width; column++) {
+				// 		int position_rendered_frame = row * width * 3 + column * 3;
+				// 		printf("%d ", frame_buffer[position_rendered_frame]);
+				// 	}
+				// 	printf("\n");
+				// }
+
+				calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+
+				translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+
+				//printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+
+				//eraseFrame(frame_buffer, width, height);
+
+				//printf("reflect and rotate %d\n", reflect_and_rotate);
+				write_back_to_frame_buffer(
+						frame_buffer,
+						(unsigned char*)ImageBuffer,
+						reflect_and_rotate,
+						width, height,
+						topOffset, leftOffset, bottomOffset, rightOffset, imageBufferWidth/3);
+
+        	}
 
         	//PRINT FRAME
         	// for (int row = 0; row < height; row++) {
