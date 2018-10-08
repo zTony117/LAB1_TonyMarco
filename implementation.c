@@ -444,6 +444,18 @@ void translate_offset_to_coordinates(
 	botRight->x_coordinate = rightOffset - width/2;
 	botRight->y_coordinate = height/2 - bottomOffset;
 
+	// topLeft->x_coordinate = leftOffset - (width - 1)/2;
+	// topLeft->y_coordinate = topOffset - (height - 1)/2;
+
+	// topRight->x_coordinate = rightOffset - (width - 1)/2;
+	// topRight->y_coordinate = topOffset - (height - 1)/2;
+
+	// botLeft->x_coordinate = leftOffset - (width - 1)/2;
+	// botLeft->y_coordinate = bottomOffset - (height - 1)/2;
+
+	// botRight->x_coordinate = rightOffset - (width - 1)/2;
+	// botRight->y_coordinate = bottomOffset - (height - 1)/2;
+
 	printf("Translating offset to coordinates\n");
 	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 	printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
@@ -459,10 +471,15 @@ void translate_coordinates_to_offset(
 
 	int buffer;
 
-	*leftOffset = topLeft->x_coordinate + width/2;
-	*rightOffset = botRight->x_coordinate + width/2;
-	*topOffset = height/2 - topLeft->y_coordinate;
-	*bottomOffset = height/2 - botRight->y_coordinate;
+	*leftOffset = topLeft->x_coordinate + (width/2);
+	*rightOffset = botRight->x_coordinate + (width/2);
+	*topOffset = (height/2) - topLeft->y_coordinate;
+	*bottomOffset = (height/2) - botRight->y_coordinate;
+
+	// *leftOffset = topLeft->x_coordinate + ((width - 1)/2);
+	// *rightOffset = botRight->x_coordinate + ((width - 1)/2);
+	// *topOffset = topLeft->y_coordinate + ((height - 1)/2);
+	// *bottomOffset = botRight->y_coordinate + ((height - 1)/2);
 
 	if (*bottomOffset < *topOffset) {
 		buffer = *topOffset;
@@ -533,10 +550,9 @@ void write_back_to_frame_buffer(
 		unsigned char *ImageBuffer,
 		int reflect_and_rotate,
 		unsigned int width, unsigned int height,
-		int topOffset, int leftOffset, int bottomOffset, int rightOffset) {
+		int topOffset, int leftOffset, int bottomOffset, int rightOffset, int image_width) {
     int xBuffer = 0;
     int yBuffer = 0;
-    int image_width = rightOffset - leftOffset +1;
 
 	//Scan Directions 8 cases in total
 
@@ -806,7 +822,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
 
         translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
-
+        printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
         //test if translate correctly
 
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
@@ -985,7 +1001,15 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	}
         	*/
     		eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
-    		
+    		//PRINT FRAME
+    		// for (int row = 0; row < height; row++) {
+    		// 	for (int column = 0; column < width; column++) {
+    		// 		int position_rendered_frame = row * width * 3 + column * 3;
+    		// 		printf("%d ", frame_buffer[position_rendered_frame]);
+    		// 	}
+    		// 	printf("\n");
+    		// }
+
         	calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
 
         	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
@@ -994,12 +1018,24 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         	
         	//eraseFrame(frame_buffer, width, height);
 
+        	//printf("reflect and rotate %d\n", reflect_and_rotate);
         	write_back_to_frame_buffer(
         			frame_buffer,
-					(char*)ImageBuffer,
+					(unsigned char*)ImageBuffer,
 					reflect_and_rotate,
 					width, height,
-					topOffset, leftOffset, bottomOffset, rightOffset);
+					topOffset, leftOffset, bottomOffset, rightOffset, imageBufferWidth/3);
+
+        	//PRINT FRAME
+        	// for (int row = 0; row < height; row++) {
+        	// 	for (int column = 0; column < width; column++) {
+        	// 		int position_rendered_frame = row * width * 3 + column * 3;
+        	// 		if (frame_buffer[position_rendered_frame] != 255)
+        	// 			printf("%d ", frame_buffer[position_rendered_frame]);
+        	// 			//printf("%d,%d,%d  ", frame_buffer[position_rendered_frame], frame_buffer[position_rendered_frame + 1], frame_buffer[position_rendered_frame + 1]);
+        	// 	}
+        	// 	printf("\n");
+        	// }
 
             verifyFrame(frame_buffer, width, height, grading_mode);
 
