@@ -432,17 +432,54 @@ void translate_offset_to_coordinates(
 		struct coordinates* topLeft, struct coordinates* topRight,
 		struct coordinates* botLeft, struct coordinates* botRight) {
 
-	topLeft->x_coordinate = leftOffset - width/2;
-	topLeft->y_coordinate = height/2 - topOffset;
+	  if ((width % 2) == 1){
 
-	topRight->x_coordinate = rightOffset - width/2;
-	topRight->y_coordinate = height/2 - topOffset;
+		topLeft->x_coordinate = leftOffset - width/2;
+		topLeft->y_coordinate = height/2 - topOffset;
 
-	botLeft->x_coordinate = leftOffset - width/2;
-	botLeft->y_coordinate = height/2 - bottomOffset;
+		topRight->x_coordinate = rightOffset - width/2;
+		topRight->y_coordinate = height/2 - topOffset;
 
-	botRight->x_coordinate = rightOffset - width/2;
-	botRight->y_coordinate = height/2 - bottomOffset;
+		botLeft->x_coordinate = leftOffset - width/2;
+		botLeft->y_coordinate = height/2 - bottomOffset;
+
+		botRight->x_coordinate = rightOffset - width/2;
+		botRight->y_coordinate = height/2 - bottomOffset;
+	} else {
+		//printf("Width is even number\n");
+
+		if (leftOffset >= width/2) {
+			topLeft->x_coordinate = leftOffset - width/2 + 1;
+			botLeft->x_coordinate = leftOffset - width/2 + 1;
+		} else {
+			topLeft->x_coordinate = leftOffset - width/2;
+			botLeft->x_coordinate = leftOffset - width/2;
+		}
+
+		if (topOffset <= width/2) {
+			topLeft->y_coordinate = height/2 - topOffset + 1;
+			topRight->y_coordinate = height/2 - topOffset + 1;
+		} else {
+			topLeft->y_coordinate = height/2 - topOffset;
+			topRight->y_coordinate = height/2 - topOffset;
+		}
+
+		if (rightOffset >= width/2) {
+			topRight->x_coordinate = rightOffset - width/2 + 1;
+			botRight->x_coordinate = rightOffset - width/2 + 1;
+		} else {
+			topRight->x_coordinate = rightOffset - width/2;
+			botRight->x_coordinate = rightOffset - width/2;
+		}
+
+		if (bottomOffset <= width/2) {
+			botLeft->y_coordinate = height/2 - bottomOffset + 1;
+			botRight->y_coordinate = height/2 - bottomOffset + 1;
+		} else {
+			botLeft->y_coordinate = height/2 - bottomOffset;
+			botRight->y_coordinate = height/2 - bottomOffset;
+		}
+	}
 
 	printf("Translating offset to coordinates\n");
 	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
@@ -459,10 +496,37 @@ void translate_coordinates_to_offset(
 
 	int buffer;
 
-	*leftOffset = topLeft->x_coordinate + width/2;
-	*rightOffset = botRight->x_coordinate + width/2;
-	*topOffset = height/2 - topLeft->y_coordinate;
-	*bottomOffset = height/2 - botRight->y_coordinate;
+	if ((width % 2) == 1) {
+		*leftOffset = topLeft->x_coordinate + width/2;
+		*rightOffset = botRight->x_coordinate + width/2;
+		*topOffset = height/2 - topLeft->y_coordinate;
+		*bottomOffset = height/2 - botRight->y_coordinate;
+	} else {
+		//printf("Width is even number\n");
+		if (topLeft->x_coordinate >= 0) {
+			*leftOffset = topLeft->x_coordinate + width/2 - 1;
+		} else {
+			*leftOffset = topLeft->x_coordinate + width/2;
+		}
+
+		if (topLeft->y_coordinate >= 0) {
+			*topOffset = height/2 - topLeft->y_coordinate + 1;
+		} else {
+			*topOffset = height/2 - topLeft->y_coordinate;
+		}
+
+		if (botRight->x_coordinate >= 0) {
+			*rightOffset = botRight->x_coordinate + width/2 - 1;
+		} else {
+			*rightOffset = botRight->x_coordinate + width/2;
+		}
+
+		if (botRight->y_coordinate >= 0) {
+			*bottomOffset = height/2 - botRight->y_coordinate + 1;
+		} else {
+			*bottomOffset = height/2 - botRight->y_coordinate;
+		}
+	}
 
 	if (*bottomOffset < *topOffset) {
 		buffer = *topOffset;
