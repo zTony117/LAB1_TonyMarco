@@ -444,18 +444,6 @@ void translate_offset_to_coordinates(
 	botRight->x_coordinate = rightOffset - width/2;
 	botRight->y_coordinate = height/2 - bottomOffset;
 
-	// topLeft->x_coordinate = leftOffset - (width - 1)/2;
-	// topLeft->y_coordinate = topOffset - (height - 1)/2;
-
-	// topRight->x_coordinate = rightOffset - (width - 1)/2;
-	// topRight->y_coordinate = topOffset - (height - 1)/2;
-
-	// botLeft->x_coordinate = leftOffset - (width - 1)/2;
-	// botLeft->y_coordinate = bottomOffset - (height - 1)/2;
-
-	// botRight->x_coordinate = rightOffset - (width - 1)/2;
-	// botRight->y_coordinate = bottomOffset - (height - 1)/2;
-
 	printf("Translating offset to coordinates\n");
 	printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 	printf("TopLeft coordinates: (%d, %d)\n", topLeft->x_coordinate, topLeft->y_coordinate);
@@ -471,15 +459,10 @@ void translate_coordinates_to_offset(
 
 	int buffer;
 
-	*leftOffset = topLeft->x_coordinate + (width/2);
-	*rightOffset = botRight->x_coordinate + (width/2);
-	*topOffset = (height/2) - topLeft->y_coordinate;
-	*bottomOffset = (height/2) - botRight->y_coordinate;
-
-	// *leftOffset = topLeft->x_coordinate + ((width - 1)/2);
-	// *rightOffset = botRight->x_coordinate + ((width - 1)/2);
-	// *topOffset = topLeft->y_coordinate + ((height - 1)/2);
-	// *bottomOffset = botRight->y_coordinate + ((height - 1)/2);
+	*leftOffset = topLeft->x_coordinate + width/2;
+	*rightOffset = botRight->x_coordinate + width/2;
+	*topOffset = height/2 - topLeft->y_coordinate;
+	*bottomOffset = height/2 - botRight->y_coordinate;
 
 	if (*bottomOffset < *topOffset) {
 		buffer = *topOffset;
