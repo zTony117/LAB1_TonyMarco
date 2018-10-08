@@ -550,9 +550,25 @@ void translate_coordinates_to_offset(
 
 
 
-void *eraseImage(unsigned char *buffer_frame, unsigned width, unsigned height, int left, int top, int bottom, int right) {
+void *eraseImage(
+		unsigned char *buffer_frame,
+		unsigned width, unsigned height,
+		int left, int top, int bottom, int right,
+		int newtopOffset, int newleftOffset, int newbottomOffset, int newrightOffset) {
+
+//	int overlap = 0;
+
+    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", left, right, top, bottom);
+
+    //printf("New leftOffset = %d, New rightOffset = %d, New topOffset = %d, New bottomOffset = %d\n", newleftOffset, newrightOffset, newtopOffset, newbottomOffset);
+
     for (int row = top; row <= bottom; row++) {
         for (int column = left; column <= right; column++) {
+        	if (column < newrightOffset && column > newleftOffset && row < newbottomOffset && row >  newtopOffset) {
+//        		overlap = 1;
+        		continue;
+        	}
+
             int position = row * width * 3 + column * 3;
             //CAN ADD A CHECK FOR WHITE VALUES TO SEE IF THAT HELPS IMPROVE PERFORMANCE
             buffer_frame[position] = 255;
@@ -560,6 +576,8 @@ void *eraseImage(unsigned char *buffer_frame, unsigned width, unsigned height, i
             buffer_frame[position + 2] = 255;
         }
     }
+//    if (overlap == 1)
+//    	printf("Overlapping\n");
 }
 
 
@@ -831,6 +849,11 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     int topOffset = 0;
     int bottomOffset = 0;
 
+    int newleftOffset = 100000;
+    int newrightOffset = 0;
+    int newtopOffset = 0;
+    int newbottomOffset = 0;
+
     //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
     findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
 
@@ -1021,10 +1044,10 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 							updated_cumulated_output_matrix[1][0],
 							updated_cumulated_output_matrix[1][1]);
 
-    			// printf("Output Matrix: \n");
-    			// printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
-    			// printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
-    			// printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
+//    			 printf("Output Matrix: \n");
+//    			 printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
+//    			 printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
+//    			 printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
 //            if (reflect_and_rotate < 0) {
 //        		printf("reflect_and_rotate is negative!\n");
 //        	}
@@ -1060,7 +1083,6 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 
         	if (orientation_changed_since_last_frame != 0 || output_matrix[0][2] != 0 || output_matrix[1][2]) {
 
-				eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
 				//PRINT FRAME
 				// for (int row = 0; row < height; row++) {
 				// 	for (int column = 0; column < width; column++) {
@@ -1070,9 +1092,12 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 				// 	printf("\n");
 				// }
 
+
 				calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
 
-				translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+				translate_coordinates_to_offset(width, height, &newtopOffset, &newleftOffset, &newbottomOffset, &newrightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+
+        		eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset, newtopOffset, newleftOffset, newbottomOffset, newrightOffset);
 
 				//printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
 
@@ -1084,7 +1109,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 						(unsigned char*)ImageBuffer,
 						reflect_and_rotate,
 						width, height,
-						topOffset, leftOffset, bottomOffset, rightOffset, imageBufferWidth/3);
+						newtopOffset, newleftOffset, newbottomOffset, newrightOffset, imageBufferWidth/3);
 
         	}
 
@@ -1107,6 +1132,11 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 			oldtopRight = newtopRight;
 			oldbotLeft = newbotLeft;
 			oldbotRight = newbotRight;
+
+			leftOffset = newleftOffset;
+			rightOffset = newrightOffset;
+			topOffset = newtopOffset;
+			bottomOffset = newbottomOffset;
 
 	        copy_two_matrices(updated_cumulated_output_matrix, old_cumulated_output_matrix);
         }
