@@ -984,14 +984,15 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
         		frame_buffer = processMoveUp(frame_buffer, width, height, output_matrix[1][2]);
         	}
         	*/
-
+    		eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
+    		
         	calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
 
         	translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
 
-        	//eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset);
-
-        	eraseFrame(frame_buffer, width, height);
+        	//printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+        	
+        	//eraseFrame(frame_buffer, width, height);
 
         	write_back_to_frame_buffer(
         			frame_buffer,
