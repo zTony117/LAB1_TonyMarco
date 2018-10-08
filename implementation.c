@@ -456,9 +456,10 @@ void translate_offset_to_coordinates(
 			botLeft->x_coordinate = leftOffset - width/2;
 		}
 
-		if (topOffset <= width/2) {
-			topLeft->y_coordinate = height/2 - topOffset + 1;
-			topRight->y_coordinate = height/2 - topOffset + 1;
+
+		if (topOffset >= width/2) {
+			topLeft->y_coordinate = height/2 - topOffset - 1;
+			topRight->y_coordinate = height/2 - topOffset - 1;
 		} else {
 			topLeft->y_coordinate = height/2 - topOffset;
 			topRight->y_coordinate = height/2 - topOffset;
@@ -472,9 +473,10 @@ void translate_offset_to_coordinates(
 			botRight->x_coordinate = rightOffset - width/2;
 		}
 
-		if (bottomOffset <= width/2) {
-			botLeft->y_coordinate = height/2 - bottomOffset + 1;
-			botRight->y_coordinate = height/2 - bottomOffset + 1;
+		if (bottomOffset >= width/2) {
+			botLeft->y_coordinate = height/2 - bottomOffset - 1;
+			botRight->y_coordinate = height/2 - bottomOffset - 1;
+
 		} else {
 			botLeft->y_coordinate = height/2 - bottomOffset;
 			botRight->y_coordinate = height/2 - bottomOffset;
@@ -509,8 +511,8 @@ void translate_coordinates_to_offset(
 			*leftOffset = topLeft->x_coordinate + width/2;
 		}
 
-		if (topLeft->y_coordinate >= 0) {
-			*topOffset = height/2 - topLeft->y_coordinate + 1;
+		if (topLeft->y_coordinate <= 0) {
+			*topOffset = height/2 - topLeft->y_coordinate - 1;
 		} else {
 			*topOffset = height/2 - topLeft->y_coordinate;
 		}
@@ -521,8 +523,8 @@ void translate_coordinates_to_offset(
 			*rightOffset = botRight->x_coordinate + width/2;
 		}
 
-		if (botRight->y_coordinate >= 0) {
-			*bottomOffset = height/2 - botRight->y_coordinate + 1;
+		if (botRight->y_coordinate <= 0) {
+			*bottomOffset = height/2 - botRight->y_coordinate - 1;
 		} else {
 			*bottomOffset = height/2 - botRight->y_coordinate;
 		}
