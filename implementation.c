@@ -4,7 +4,7 @@
 #include "utilities.h"  // DO NOT REMOVE this line
 #include "implementation_reference.h"   // DO NOT REMOVE this line
 
-#define N 14
+#define N 4
 
 
 /***********************************************************************************************************************
@@ -113,7 +113,7 @@ unsigned char *processMirrorY(unsigned char *buffer_frame, unsigned width, unsig
  **********************************************************************************************************************/
 void print_team_info(){
     // Please modify this field with something interesting
-    char team_name[] = "( ಠ ͜ʖಠ)";
+    char team_name[] = "(Crippling Depression)";
 
     // Please fill in your information
     char student1_first_name[] = "Zhaotong";
@@ -554,13 +554,20 @@ void translate_coordinates_to_offset(
 	// printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", *leftOffset, *rightOffset, *topOffset, *bottomOffset);
 }
 
+struct ImageBuffer {
+    unsigned char *ImageBuffer;
+    int imageBufferWidth;
+    int imageBufferHeight;
+    int valid;
+};
 
 
 void *eraseImage(
 		unsigned char *buffer_frame,
 		unsigned width, unsigned height,
 		int left, int top, int bottom, int right,
-		int newtopOffset, int newleftOffset, int newbottomOffset, int newrightOffset) {
+		int newtopOffset[N][N], int newleftOffset[N][N], int newbottomOffset[N][N], int newrightOffset[N][N],
+		int gridX, int gridY, struct ImageBuffer ImageBufferlist[N][N]) {
 
 //	int overlap = 0;
 
@@ -574,6 +581,25 @@ void *eraseImage(
 ////        		overlap = 1;
 //        		continue;
 //        	}
+
+        	int overlap = 0;
+
+        	for (int i = 0; i < N; i++) {
+        		for (int j = 0; j < N; j++) {
+//        			if (i == gridX && j == gridY)
+//        				continue;
+        			if (ImageBufferlist[i][j].valid == 0)
+        				continue;
+
+        			if (column <= newrightOffset[i][j] && column >= newleftOffset[i][j] && row <= newbottomOffset[i][j] && row >=  newtopOffset[i][j]) {
+        				overlap = 1;
+        				continue;
+        			}
+        		}
+        	}
+
+        	if (overlap == 1)
+        		continue;
 
             int position = row * width * 3 + column * 3;
             //CAN ADD A CHECK FOR WHITE VALUES TO SEE IF THAT HELPS IMPROVE PERFORMANCE
@@ -817,13 +843,6 @@ void eraseFrame(unsigned char *buffer_frame, unsigned width, unsigned height) {
     deallocateFrame(rendered_frame);
 }
 
-struct ImageBuffer {
-    unsigned char *ImageBuffer;
-    int imageBufferWidth;
-    int imageBufferHeight;
-    int valid;
-};
-
 void implementation_driver(struct kv *sensor_values, int sensor_values_count, unsigned char *frame_buffer,
                            unsigned int width, unsigned int height, bool grading_mode) {
     int processed_frames = 0;
@@ -878,12 +897,12 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
-			leftOffset[i][j] = 100000;
+			leftOffset[i][j] = 1000000000;
 			rightOffset[i][j] = 0;
 			topOffset[i][j] = 0;
 			bottomOffset[i][j] = 0;
 
-			newleftOffset[i][j] = 100000;
+			newleftOffset[i][j] = 1000000000;
 			newrightOffset[i][j] = 0;
 			newtopOffset[i][j] = 0;
 			newbottomOffset[i][j] = 0;
@@ -902,7 +921,7 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 	for (i = 0; i < N; i++) {
 		for (j = 0; j < N; j++) {
 			findImage(frame_buffer, width, height, &topOffset[i][j], &leftOffset[i][j], &bottomOffset[i][j], &rightOffset[i][j], i, j);
-			if (leftOffset[i][j] != 100000) {
+			if (leftOffset[i][j] != 1000000000) {
 				ImageBufferlist[i][j].valid = 1;
 			    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset[i][j], rightOffset[i][j], topOffset[i][j], bottomOffset[i][j]);
 			}
@@ -1006,9 +1025,9 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 					topOffset[i][j], leftOffset[i][j], bottomOffset[i][j], rightOffset[i][j],
 					&oldtopLeft[i][j], &oldtopRight[i][j], &oldbotLeft[i][j], &oldbotRight[i][j]);
 
-			translate_coordinates_to_offset(width, height,
-					&topOffset[i][j], &leftOffset[i][j], &bottomOffset[i][j], &rightOffset[i][j],
-					&oldtopLeft[i][j], &oldtopRight[i][j], &oldbotLeft[i][j], &oldbotRight[i][j]);
+//			translate_coordinates_to_offset(width, height,
+//					&topOffset[i][j], &leftOffset[i][j], &bottomOffset[i][j], &rightOffset[i][j],
+//					&oldtopLeft[i][j], &oldtopRight[i][j], &oldbotLeft[i][j], &oldbotRight[i][j]);
 			//printf("Testing: leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset[i][j], rightOffset[i][j], topOffset[i][j], bottomOffset[i][j]);
 			//test if translate correctly
 		}
@@ -1244,7 +1263,8 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 								frame_buffer,
 								width, height,
 								leftOffset[i][j], topOffset[i][j], bottomOffset[i][j], rightOffset[i][j],
-								newtopOffset[i][j], newleftOffset[i][j], newbottomOffset[i][j], newrightOffset[i][j]);
+								newtopOffset, newleftOffset, newbottomOffset, newrightOffset,
+								i, j, ImageBufferlist);
 
 						//printf("New: leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", newleftOffset[i][j], newrightOffset[i][j], newtopOffset[i][j], newbottomOffset[i][j]);
 
