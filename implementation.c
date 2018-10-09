@@ -564,7 +564,7 @@ void *eraseImage(
 
     for (int row = top; row <= bottom; row++) {
         for (int column = left; column <= right; column++) {
-        	if (column < newrightOffset && column > newleftOffset && row < newbottomOffset && row >  newtopOffset) {
+        	if (column <= newrightOffset && column >= newleftOffset && row <= newbottomOffset && row >=  newtopOffset) {
 //        		overlap = 1;
         		continue;
         	}
