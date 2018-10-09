@@ -415,15 +415,15 @@ void calculate_new_coordinates_after_transformation(
 	newBotRight->y_coordinate = transformation[1][0] * oldBotRight->x_coordinate + transformation[1][1] * oldBotRight->y_coordinate;
 	newBotRight->x_coordinate = newBotRight->x_coordinate + transformation[0][2];
 	newBotRight->y_coordinate = newBotRight->y_coordinate + transformation[1][2];
-	// printf("Calculate new coordinates after transformation\n");
-	// printf("Old TopLeft coordinates: (%d, %d)\n", oldTopLeft->x_coordinate, oldTopLeft->y_coordinate);
-	// printf("Old TopRight coordinates: (%d, %d)\n", oldTopRight->x_coordinate, oldTopRight->y_coordinate);
-	// printf("Old BotLeft coordinates: (%d, %d)\n", oldBotLeft->x_coordinate, oldBotLeft->y_coordinate);
-	// printf("Old BotRight coordinates: (%d, %d)\n", oldBotRight->x_coordinate, oldBotRight->y_coordinate);
-	// printf("New TopLeft coordinates: (%d, %d)\n", newTopLeft->x_coordinate, newTopLeft->y_coordinate);
-	// printf("New TopRight coordinates: (%d, %d)\n", newTopRight->x_coordinate, newTopRight->y_coordinate);
-	// printf("New BotLeft coordinates: (%d, %d)\n", newBotLeft->x_coordinate, newBotLeft->y_coordinate);
-	// printf("New BotRight coordinates: (%d, %d)\n", newBotRight->x_coordinate, newBotRight->y_coordinate);
+	 printf("Calculate new coordinates after transformation\n");
+	 printf("Old TopLeft coordinates: (%d, %d)\n", oldTopLeft->x_coordinate, oldTopLeft->y_coordinate);
+	 printf("Old TopRight coordinates: (%d, %d)\n", oldTopRight->x_coordinate, oldTopRight->y_coordinate);
+	 printf("Old BotLeft coordinates: (%d, %d)\n", oldBotLeft->x_coordinate, oldBotLeft->y_coordinate);
+	 printf("Old BotRight coordinates: (%d, %d)\n", oldBotRight->x_coordinate, oldBotRight->y_coordinate);
+	 printf("New TopLeft coordinates: (%d, %d)\n", newTopLeft->x_coordinate, newTopLeft->y_coordinate);
+	 printf("New TopRight coordinates: (%d, %d)\n", newTopRight->x_coordinate, newTopRight->y_coordinate);
+	 printf("New BotLeft coordinates: (%d, %d)\n", newBotLeft->x_coordinate, newBotLeft->y_coordinate);
+	 printf("New BotRight coordinates: (%d, %d)\n", newBotRight->x_coordinate, newBotRight->y_coordinate);
 }
 
 void translate_offset_to_coordinates(
@@ -564,10 +564,10 @@ void *eraseImage(
 
     for (int row = top; row <= bottom; row++) {
         for (int column = left; column <= right; column++) {
-        	if (column <= newrightOffset && column >= newleftOffset && row <= newbottomOffset && row >=  newtopOffset) {
-//        		overlap = 1;
-        		continue;
-        	}
+//        	if (column <= newrightOffset && column >= newleftOffset && row <= newbottomOffset && row >=  newtopOffset) {
+////        		overlap = 1;
+//        		continue;
+//        	}
 
             int position = row * width * 3 + column * 3;
             //CAN ADD A CHECK FOR WHITE VALUES TO SEE IF THAT HELPS IMPROVE PERFORMANCE
@@ -649,8 +649,8 @@ void write_back_to_frame_buffer(
 		    		frame_buffer[position + 2] = *((ImageBuffer+yBuffer*image_width*3)+xBuffer+2);
 		    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
 		    		//printf("%d, %d, %d  ", *((ImageBuffer+yBuffer*image_width)+xBuffer), *((ImageBuffer+yBuffer*image_width)+xBuffer+1), *((ImageBuffer+yBuffer*image_width)+xBuffer+2));
-		    		if (row == topOffset + 1)
-		    			printf("%Color: d, %d, %d, Position: %d  ", frame_buffer[position], frame_buffer[position+1], frame_buffer[position+2], position);
+//		    		if (row == topOffset + 1)
+//		    			printf("%Color: d, %d, %d, Position: %d  ", frame_buffer[position], frame_buffer[position+1], frame_buffer[position+2], position);
 		    		xBuffer+=3;
 		    	}
 		    	yBuffer++;
@@ -811,12 +811,23 @@ void eraseFrame(unsigned char *buffer_frame, unsigned width, unsigned height) {
     deallocateFrame(rendered_frame);
 }
 
+#define N 1
+
+struct ImageBuffer {
+    unsigned char *ImageBuffer;
+    int imageBufferWidth;
+    int imageBufferHeight;
+    int valid;
+};
+
 void implementation_driver(struct kv *sensor_values, int sensor_values_count, unsigned char *frame_buffer,
                            unsigned int width, unsigned int height, bool grading_mode) {
     int processed_frames = 0;
     int number_of_mirrorX = 0;
     int number_of_mirrorY = 0;
     int number_of_rotation = 0;
+    int i;
+    int j;
     int current_matrix[3][3]= {
     		{1, 0, 0},
     		{0, 1, 0},
@@ -840,46 +851,137 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     		{0, 0, 1}
     };
 
-    struct coordinates oldtopLeft, oldtopRight, oldbotLeft, oldbotRight;
+    struct coordinates oldtopLeft[N][N];
+    struct coordinates oldtopRight[N][N];
+    struct coordinates oldbotLeft[N][N];
+    struct coordinates oldbotRight[N][N];
 
-    struct coordinates newtopLeft, newtopRight, newbotLeft, newbotRight;
+    struct coordinates newtopLeft[N][N];
+    struct coordinates newtopRight[N][N];
+    struct coordinates newbotLeft[N][N];
+    struct coordinates newbotRight[N][N];
 
-    int leftOffset = 100000;
-    int rightOffset = 0;
-    int topOffset = 0;
-    int bottomOffset = 0;
 
-    int newleftOffset = 100000;
-    int newrightOffset = 0;
-    int newtopOffset = 0;
-    int newbottomOffset = 0;
+    int leftOffset[N][N];
+    int rightOffset[N][N];
+    int topOffset[N][N];
+    int bottomOffset[N][N];
+
+    int newleftOffset[N][N];
+    int newrightOffset[N][N];
+    int newtopOffset[N][N];
+    int newbottomOffset[N][N];
+
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			leftOffset[i][j] = 100000;
+			rightOffset[i][j] = 0;
+			topOffset[i][j] = 0;
+			bottomOffset[i][j] = 0;
+
+			newleftOffset[i][j] = 100000;
+			newrightOffset[i][j] = 0;
+			newtopOffset[i][j] = 0;
+			newbottomOffset[i][j] = 0;
+		}
+	}
+
+    struct ImageBuffer ImageBufferlist[N][N];
+
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			ImageBufferlist[i][j].valid = 0;
+		}
+	}
 
     //PROCESS BITMAP TO LOOK FOR IMAGE WITHIN BITMAP
-    findImage(frame_buffer, width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset);
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			findImage(frame_buffer, width, height, &topOffset[i][j], &leftOffset[i][j], &bottomOffset[i][j], &rightOffset[i][j]);
+			if (leftOffset[i][j] != 100000) {
+				ImageBufferlist[i][j].valid = 1;
+			    printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset[i][j], rightOffset[i][j], topOffset[i][j], bottomOffset[i][j]);
+			}
+			else {
+				printf("Image not found!\n");
+			    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset[i][j], rightOffset[i][j], topOffset[i][j], bottomOffset[i][j]);
+			}
 
-    //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+		}
+	}
+
+
 
     //START PUTTING IMAGE INTO 2D BUFFER ARRAY
-    int imageBufferWidth = (rightOffset - leftOffset + 1) * 3;
-    int imageBufferHeight = (bottomOffset - topOffset) + 1;
+
+    //int imageBufferWidth[N][N];
+    //int imageBufferHeight[N][N]
+
     //printf("imageBufferWidth %d imageBufferheight %d\n", imageBufferWidth, imageBufferHeight);
     //put image into a buffer
-    unsigned char ImageBuffer[imageBufferHeight][imageBufferWidth];
 
-    int xBuffer = 0;
-    int yBuffer = 0;
-    for (int row = topOffset; row <= bottomOffset; row++) {
-    	for (int column = leftOffset; column <= rightOffset; column++) {
-    		int position = row * width * 3 + column * 3;
-    		ImageBuffer[yBuffer][xBuffer] = frame_buffer[position];
-    		ImageBuffer[yBuffer][xBuffer + 1] = frame_buffer[position + 1];
-    		ImageBuffer[yBuffer][xBuffer + 2] = frame_buffer[position + 2];
-    		//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
-    		xBuffer += 3;
-    	}
-    	yBuffer++;
-    	xBuffer = 0;
-    }
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			if (ImageBufferlist[i][j].valid != 1)
+				continue;
+			ImageBufferlist[i][j].imageBufferWidth = (rightOffset[i][j] - leftOffset[i][j] + 1) * 3;
+			ImageBufferlist[i][j].imageBufferHeight = (bottomOffset[i][j] - topOffset[i][j]) + 1;
+		}
+	}
+
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			if (ImageBufferlist[i][j].valid != 1)
+				continue;
+			ImageBufferlist[i][j].ImageBuffer =
+					allocateFrame(
+							ImageBufferlist[i][j].imageBufferWidth/3,
+							ImageBufferlist[i][j].imageBufferHeight);
+		}
+	}
+
+
+    //ImageBuffer[yBuffer][xBuffer] -> *((ImageBuffer+yBuffer*image_width)+xBuffer)
+
+    //unsigned char ImageBuffer[imageBufferHeight][imageBufferWidth];
+
+
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			if (ImageBufferlist[i][j].valid != 1)
+				continue;
+
+			int xBuffer = 0;
+			int yBuffer = 0;
+			for (int row = topOffset[i][j]; row <= bottomOffset[i][j]; row++) {
+				for (int column = leftOffset[i][j]; column <= rightOffset[i][j]; column++) {
+					int position = row * width * 3 + column * 3;
+//					ImageBuffer[yBuffer][xBuffer] = frame_buffer[position];
+//					ImageBuffer[yBuffer][xBuffer + 1] = frame_buffer[position + 1];
+//					ImageBuffer[yBuffer][xBuffer + 2] = frame_buffer[position + 2];
+
+//		            int position_rendered_frame = row * width * 3 + column * 3;
+//		            rendered_frame[position_rendered_frame] = 255;
+
+
+					int position_rendered_frame = yBuffer * ImageBufferlist[i][j].imageBufferWidth + xBuffer;
+					//
+
+//					*((ImageBufferlist[i][j].ImageBuffer+yBuffer*ImageBufferlist[i][j].imageBufferWidth)+xBuffer) = frame_buffer[position];
+//					*((ImageBufferlist[i][j].ImageBuffer+yBuffer*ImageBufferlist[i][j].imageBufferWidth)+xBuffer+1) = frame_buffer[position];
+//					*((ImageBufferlist[i][j].ImageBuffer+yBuffer*ImageBufferlist[i][j].imageBufferWidth)+xBuffer+2) = frame_buffer[position];
+
+					ImageBufferlist[i][j].ImageBuffer[position_rendered_frame] = frame_buffer[position];
+					ImageBufferlist[i][j].ImageBuffer[position_rendered_frame + 1] = frame_buffer[position + 1];
+					ImageBufferlist[i][j].ImageBuffer[position_rendered_frame + 2] = frame_buffer[position+2];
+					//printf("row %d column %d xBuffer %d yBuffer %d\n", row, column, xBuffer, yBuffer);
+					xBuffer += 3;
+				}
+				yBuffer++;
+				xBuffer = 0;
+			}
+		}
+	}
 
     //output values of image buffer
     // for (int y = 0; y < imageBufferHeight; y++) {
@@ -891,11 +993,22 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
     //END PUTTING IMAGE INTO 2D BUFFER ARRAY
 
 
-        translate_offset_to_coordinates(width, height, topOffset, leftOffset, bottomOffset, rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
+	for (i = 0; i < N; i++) {
+		for (j = 0; j < N; j++) {
+			if (ImageBufferlist[i][j].valid != 1)
+				continue;
 
-        translate_coordinates_to_offset(width, height, &topOffset, &leftOffset, &bottomOffset, &rightOffset, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight);
-        //printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
-        //test if translate correctly
+			translate_offset_to_coordinates(width, height,
+					topOffset[i][j], leftOffset[i][j], bottomOffset[i][j], rightOffset[i][j],
+					&oldtopLeft[i][j], &oldtopRight[i][j], &oldbotLeft[i][j], &oldbotRight[i][j]);
+
+			translate_coordinates_to_offset(width, height,
+					&topOffset[i][j], &leftOffset[i][j], &bottomOffset[i][j], &rightOffset[i][j],
+					&oldtopLeft[i][j], &oldtopRight[i][j], &oldbotLeft[i][j], &oldbotRight[i][j]);
+			printf("Testing: leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset[i][j], rightOffset[i][j], topOffset[i][j], bottomOffset[i][j]);
+			//test if translate correctly
+		}
+	}
 
     for (int sensorValueIdx = 0; sensorValueIdx < sensor_values_count; sensorValueIdx++) {
 //        printf("Processing sensor value #%d: %s, %d\n", sensorValueIdx, sensor_values[sensorValueIdx].key,
@@ -1044,13 +1157,13 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 							updated_cumulated_output_matrix[1][0],
 							updated_cumulated_output_matrix[1][1]);
 
-//    			 printf("Output Matrix: \n");
-//    			 printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
-//    			 printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
-//    			 printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
-//            if (reflect_and_rotate < 0) {
-//        		printf("reflect_and_rotate is negative!\n");
-//        	}
+    			 printf("Output Matrix: \n");
+    			 printf("{%d, %d, %d}\n", output_matrix[0][0], output_matrix[0][1], output_matrix[0][2]);
+    			 printf("{%d, %d, %d}\n", output_matrix[1][0], output_matrix[1][1], output_matrix[1][2]);
+    			 printf("{%d, %d, %d}\n", output_matrix[2][0], output_matrix[2][1], output_matrix[2][2]);
+            if (reflect_and_rotate < 0) {
+        		printf("reflect_and_rotate is negative!\n");
+        	}
 
     		/*
     		 * Old code that uses process functions
@@ -1092,51 +1205,94 @@ void implementation_driver(struct kv *sensor_values, int sensor_values_count, un
 				// 	printf("\n");
 				// }
 
+    			for (i = 0; i < N; i++) {
+    				for (j = 0; j < N; j++) {
 
-				calculate_new_coordinates_after_transformation(output_matrix, &oldtopLeft, &oldtopRight, &oldbotLeft, &oldbotRight, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+    					if (ImageBufferlist[i][j].valid != 1)
+    						continue;
 
-				translate_coordinates_to_offset(width, height, &newtopOffset, &newleftOffset, &newbottomOffset, &newrightOffset, &newtopLeft, &newtopRight, &newbotLeft, &newbotRight);
+						calculate_new_coordinates_after_transformation(
+								output_matrix,
+								&oldtopLeft[i][j], &oldtopRight[i][j],
+								&oldbotLeft[i][j], &oldbotRight[i][j],
+								&newtopLeft[i][j], &newtopRight[i][j],
+								&newbotLeft[i][j], &newbotRight[i][j]);
 
-        		eraseImage(frame_buffer, width, height, leftOffset, topOffset, bottomOffset, rightOffset, newtopOffset, newleftOffset, newbottomOffset, newrightOffset);
+						translate_coordinates_to_offset(width, height,
+								&newtopOffset[i][j], &newleftOffset[i][j],
+								&newbottomOffset[i][j], &newrightOffset[i][j],
+								&newtopLeft[i][j], &newtopRight[i][j],
+								&newbotLeft[i][j], &newbotRight[i][j]);
 
-				//printf("leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", leftOffset, rightOffset, topOffset, bottomOffset);
+						eraseImage(
+								frame_buffer,
+								width, height,
+								leftOffset[i][j], topOffset[i][j], bottomOffset[i][j], rightOffset[i][j],
+								newtopOffset[i][j], newleftOffset[i][j], newbottomOffset[i][j], newrightOffset[i][j]);
 
-				//eraseFrame(frame_buffer, width, height);
+						printf("New: leftOffset = %d, rightOffset = %d, topOffset = %d, bottomOffset = %d\n", newleftOffset[i][j], newrightOffset[i][j], newtopOffset[i][j], newbottomOffset[i][j]);
 
-				//printf("reflect and rotate %d\n", reflect_and_rotate);
-				write_back_to_frame_buffer(
-						frame_buffer,
-						(unsigned char*)ImageBuffer,
-						reflect_and_rotate,
-						width, height,
-						newtopOffset, newleftOffset, newbottomOffset, newrightOffset, imageBufferWidth/3);
+						//eraseFrame(frame_buffer, width, height);
+
+						//printf("reflect and rotate %d\n", reflect_and_rotate);
+						write_back_to_frame_buffer(
+								frame_buffer,
+								ImageBufferlist[i][j].ImageBuffer,
+								reflect_and_rotate,
+								width, height,
+								newtopOffset[i][j], newleftOffset[i][j],
+								newbottomOffset[i][j], newrightOffset[i][j],
+								ImageBufferlist[i][j].imageBufferWidth/3);
+    				}
+    			}
 
         	}
 
-        	//PRINT FRAME
-        	// for (int row = 0; row < height; row++) {
-        	// 	for (int column = 0; column < width; column++) {
-        	// 		int position_rendered_frame = row * width * 3 + column * 3;
-        	// 		if (frame_buffer[position_rendered_frame] != 255)
-        	// 			printf("%d ", frame_buffer[position_rendered_frame]);
-        	// 			//printf("%d,%d,%d  ", frame_buffer[position_rendered_frame], frame_buffer[position_rendered_frame + 1], frame_buffer[position_rendered_frame + 1]);
-        	// 	}
-        	// 	printf("\n");
-        	// }
+//        	//PRINT FRAME
+//        	 for (int row = 0; row < height; row++) {
+//        	 	for (int column = 0; column < width; column++) {
+//        	 		int position_rendered_frame = row * width * 3 + column * 3;
+//        	 		if (frame_buffer[position_rendered_frame] != 255)
+//        	 			printf("%d ", frame_buffer[position_rendered_frame]);
+//        	 			//printf("%d,%d,%d  ", frame_buffer[position_rendered_frame], frame_buffer[position_rendered_frame + 1], frame_buffer[position_rendered_frame + 1]);
+//        	 	}
+//        	 	printf("\n");
+//        	 }
+
+//         	//PRINT Image
+//         	 for (int row = 0; row < ImageBufferlist[i][j].imageBufferHeight; row++) {
+//         	 	for (int column = 0; column < ImageBufferlist[i][j].imageBufferWidth; column++) {
+//         	 		int position_rendered_frame = row * ImageBufferlist[i][j].imageBufferWidth + column * 3;
+//         	 		if (1)
+//         	 			printf("%d ", ImageBufferlist[0][0].ImageBuffer[position_rendered_frame]);
+//         	 			//printf("%d,%d,%d  ", frame_buffer[position_rendered_frame], frame_buffer[position_rendered_frame + 1], frame_buffer[position_rendered_frame + 1]);
+//         	 	}
+//         	 	printf("\n");
+//         	 }
 
             verifyFrame(frame_buffer, width, height, grading_mode);
 
 			copy_two_matrices(reset_matrix, output_matrix);
 
-			oldtopLeft = newtopLeft;
-			oldtopRight = newtopRight;
-			oldbotLeft = newbotLeft;
-			oldbotRight = newbotRight;
+			for (i = 0; i < N; i++) {
+				for (j = 0; j < N; j++) {
 
-			leftOffset = newleftOffset;
-			rightOffset = newrightOffset;
-			topOffset = newtopOffset;
-			bottomOffset = newbottomOffset;
+					if (ImageBufferlist[i][j].valid != 1)
+						continue;
+
+					oldtopLeft[i][j] = newtopLeft[i][j];
+					oldtopRight[i][j] = newtopRight[i][j];
+					oldbotLeft[i][j] = newbotLeft[i][j];
+					oldbotRight[i][j] = newbotRight[i][j];
+
+					leftOffset[i][j] = newleftOffset[i][j];
+					rightOffset[i][j] = newrightOffset[i][j];
+					topOffset[i][j] = newtopOffset[i][j];
+					bottomOffset[i][j] = newbottomOffset[i][j];
+				}
+			}
+
+
 
 	        copy_two_matrices(updated_cumulated_output_matrix, old_cumulated_output_matrix);
         }
