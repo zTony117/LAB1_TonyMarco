@@ -4,7 +4,8 @@
 #include "utilities.h"  // DO NOT REMOVE this line
 #include "implementation_reference.h"   // DO NOT REMOVE this line
 
-#define N 10
+#define N 14
+
 
 /***********************************************************************************************************************
  * @param buffer_frame - pointer pointing to a buffer storing the imported 24-bit bitmap image
@@ -112,7 +113,7 @@ unsigned char *processMirrorY(unsigned char *buffer_frame, unsigned width, unsig
  **********************************************************************************************************************/
 void print_team_info(){
     // Please modify this field with something interesting
-    char team_name[] = "OH NO";
+    char team_name[] = "( ಠ ͜ʖಠ)";
 
     // Please fill in your information
     char student1_first_name[] = "Zhaotong";
